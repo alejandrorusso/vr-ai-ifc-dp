@@ -1,15 +1,12 @@
 all: proposal.pdf
 
-proposal.pdf: proposal.lhs.tex biblio kaw.cls
-	lhs2TeX proposal.lhs.tex > proposal.tmp
-	xelatex proposal.tmp
-	bibtex proposal
-	xelatex proposal.tmp
-	xelatex proposal.tmp
-	rm proposal.tmp
+proposal.tex: proposal.lhs.tex
+	lhs2TeX proposal.lhs.tex > proposal.tex
 
-biblio: local.bib dm.bib conferences.bib
+proposal.pdf: proposal.tex local.bib dm.bib conferences.bib kaw.cls
+	latexmk -xelatex proposal.tex
 
 .PHONY: clean
 clean:
-	rm -f *.aux *.bbl *.log *.blg *.out *.pdf *.ptb proposal.tmp
+	latexmk -C proposal.tex
+	rm -f proposal.tex
