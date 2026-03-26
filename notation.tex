@@ -1,0 +1,155 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Syntax appearance
+
+\definecolor{darkred}{HTML}{600018}
+\definecolor{darkblue}{HTML}{1D2F73}
+\definecolor{darkgreen}{HTML}{417505}
+\definecolor{lightblue}{HTML}{76E9BB}
+
+\newcommand{\ruleAcc}[1]{\textsc{#1}}
+\newcommand{\variable}[1]{{\color{darkblue} \mathtt{ #1 } }}
+\renewcommand{\Varid}[1]{{\texttt{#1}}}
+\renewcommand{\Conid}[1]{{\texttt{#1}}}
+
+%subst varsym  a = "{\color{darkblue}  \texttt{" a "}}"
+%subst numeral a = "{\color{darkgreen} \texttt{" a "}}"
+%subst string  a = "{\color{darkgreen} \texttt{\char34" a "\char34}}"
+
+%format family = "\mathbf{family}"
+%format forall = "\forall\!"
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Notation
+
+%%% Symbols %%%
+
+%format :>>=: = ":\!">>="\!:"
+%format $$ = "{\color{darkblue} \tt{~\$~}}"
+
+%%% Types %%%
+
+%format Value      = "{\color{darkgreen} \tt{Value}}"
+%format Query      = "{\color{darkblue} \tt{Query}}"
+%format Data       = "{\color{darkred} \tt{Data}}"
+%format Responses  = "{\color{darkblue} \tt{Responses}}"
+%format Epsilon    = "\epsilon"
+%format Delta      = "\delta"
+%format Beta       = "\beta"
+%format Alpha      = "\alpha"
+%format delta      = "\Delta"
+%format sigma      = "\sigma"
+
+%% Type variables
+%format stb = "{\color{darkblue} \tt{s} }"
+%format row = "{\color{darkblue} \tt{r} }"
+
+%% Transformations
+%format dpWhere      = "{\color{darkred} \tt{dpWhere} }"
+%format dpUnion      = "{\color{darkred} \tt{dpUnion} }"
+%format dpIntersect  = "{\color{darkred} \tt{dpIntersect} }"
+%format dpSelect     = "{\color{darkred} \tt{dpSelect} }"
+%format dpPartition  = "{\color{darkred} \tt{dpPart} }"
+%format dpPartRepeat = "{\color{darkred} \tt{dpPartRepeat} }"
+%format dpGroupBy    = "{\color{darkred} \tt{dpGroupBy} }"
+
+%% Aggregations
+%format dpCount = "{\color{darkblue} \tt{dpCount} }"
+%format dpSum   = "{\color{darkblue} \tt{dpSum} }"
+%format dpAvg   = "{\color{darkblue} \tt{dpAvg} }"
+%format dpMax   = "{\color{darkblue} \tt{dpMax} }"
+
+%% Analysis & Execution
+%format accuracy  = "{\color{darkblue} \tt{accuracy} }"
+%format budget    = "{\color{darkblue} \tt{budget} }"
+%format budgetAdv = "{\color{darkblue} \tt{budgetAdv} }"
+%format dpEval    = "{\color{darkred} \tt{dpEval} }"
+
+%% Combinators
+%format normL1  = "{\color{darkgreen} \tt{norm}_{1} }"
+%format normL2  = "{\color{darkgreen} \tt{norm}_{2} }"
+%format normInf = "{\color{darkgreen} \tt{norm}_{\infty} }"
+%format rmsd    = "{\color{darkgreen} \tt{rmsd} }"
+%format add     = "{\color{darkgreen} \tt{add} }"
+%format neg     = "{\color{darkgreen} \tt{neg} }"
+%format add'
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Formal rules formatting
+
+%%% Commands %%%
+
+\newcommand{\scale}[3]{#1 \cdot \frac{#2}{#3}}
+\newcommand{\stdev}[4]{\sfrac{#1 \cdot #2 \cdot \sqrt{2\cdot\mathit{log}(\sfrac{1.25}{#4})}}{#3}}
+\newcommand{\errorLap}[2]{\mathit{log}(\frac{1}{#1}) \cdot #2}
+\newcommand{\errorGauss}[2]{#2 \cdot \sqrt{2 \cdot \mathit{log}(\sfrac{2}{#1})}}
+\newcommand{\confM}[2]{#1 \rhd #2}
+\newcommand{\haskellM}[2]{#1 \rightsquigarrow^{\!\!*} #2}
+\newcommand{\haskellS}[2]{#1 \rightsquigarrow #2}
+\newcommand{\val}[3]{\mathcal{S}[#1,#2,#3]}
+\newcommand{\icdfNM}[3]{\frac{4}{#1} \cdot \mathit{log}(\frac{#2}{#3})}
+
+%%% Notation %%%
+
+%format Env     = "\Gamma"
+%format divisor = "\vdash"
+%format iCDFk   = iCDF"_j"
+%format tsk     = ts"_j"
+%format sk      = s"_j"
+%format sMax    = s"_M"
+%format SymData = "\mathcal{D}"
+%format nextk   = next"_j"
+%format bigCup  = "\textstyle \bigcup_{j=1 \dots n}"tsk
+%format allStdv = "\textstyle \sum_{j=1}^n" sk
+%format sqrtAllStdv = "\sqrt{\textstyle \sum_{j=1}^n" sk"^{2}}"
+
+%format haskell (c) (d)              = "\haskellM{"c"}{"d"}"
+%format haskellS (c) (d)             = "\haskellS{"c"}{"d"}"
+%format conf (c) (t)                 = "\confM{"c"}{"t"}"
+%format value (icdf) (scale) (label) = "\val{"icdf"}{"scale"}{"label"}"
+%format inEnv (ds) (env)             = "\inEnv{"ds"}{"env"}"
+%format errorL (beta) (scale)        = "\errorLap{"beta"}{"scale"}"
+%format scaleL (stab) (sen) (e)      = "\scale{"stab"}{"sen"}{"e"}"
+%format icdfdpMax (eps) (len) (beta) = "\icdfNM{"eps"}{"len"}{"beta"}"
+%format errorG (beta) (stdev)        = "\errorGauss{"beta"}{"stdev"}"
+%format stdevG (stab) (sen) (e) (d)  = "\stdev{"stab"}{"sen"}{"e"}{"d"}"
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Math macros
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+
+\newcommand*\sfrac[2]{{}{#1}\!/{#2}}
+\newcommand{\cmark}{$\color{darkgreen}\checkmark$}
+\newcommand{\email}[1]{\href{mailto:#1}{\small\tt{#1}}}
+\newcommand{\shareddomain}[3]{
+  \{\href{mailto:#1@@#3}{\small\tt{#1}},
+    \href{mailto:#2@@#3}{\small\tt{#2}}%
+  \}{\small\tt{@@{#3}}}}
+
+%% Compact lists
+\newenvironment{CompactItemize}%
+  {\begin{list}{$\; \; \; \; \; \; \ \  \triangleright$}%
+   {\leftmargin=0pt \itemsep=2pt \topsep=2pt
+     \parsep=0pt \partopsep=0pt}}%
+  {\end{list}}
+
+\newenvironment{CompactItemizeee}%
+  {\begin{list}{$\; \; \; \; \; \; \ \  \blacktriangleright$}%
+   {\leftmargin=0pt \itemsep=2pt \topsep=2pt
+     \parsep=0pt \partopsep=0pt}}%
+  {\end{list}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% TODOs formatting
+
+\newcommand{\gb}[1]{\todo[color=red!40,inline]{#1}}
+\newcommand{\gbb}[1]{\todo[color=red!40]{#1}}
+\newcommand{\marco}[1]{\todo[color=green!40,inline]{#1}}
+\newcommand{\marcoborder}[1]{\todo[color=green!40]{#1}}
+\newcommand{\ale}[1]{\todo[color=blue!40,inline]{#1}}
+\newcommand{\aleborder}[1]{\todo[color=blue!40]{#1}}
+\newcommand{\eli}[1]{\todo[color=yellow!40,inline]{#1}}
+\newcommand{\eliborder}[1]{\todo[color=yellow!40]{#1}}
