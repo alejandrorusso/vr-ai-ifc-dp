@@ -67,7 +67,7 @@
   \begin{picture}(0,0)
     \put(0,-4){\includegraphics[width=\linewidth]{chalmers_header}}
   \end{picture}
-  \hspace{2mm} \small\sectitlefont Alejandro Russo - CV}
+  \hspace{2mm} \small\sectitlefont Alejandro Russo - Publications and other research outputs}
 
 % Bibliography
 %\usepackage[square,super,sectionbib,numbers,sort&compress,merge]{natbib}
