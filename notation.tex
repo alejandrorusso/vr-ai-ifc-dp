@@ -8,70 +8,6 @@
 
 \newcommand{\ruleAcc}[1]{\textsc{#1}}
 \newcommand{\variable}[1]{{\color{darkblue} \mathtt{ #1 } }}
-\renewcommand{\Varid}[1]{{\texttt{#1}}}
-\renewcommand{\Conid}[1]{{\texttt{#1}}}
-
-%subst varsym  a = "{\color{darkblue}  \texttt{" a "}}"
-%subst numeral a = "{\color{darkgreen} \texttt{" a "}}"
-%subst string  a = "{\color{darkgreen} \texttt{\char34" a "\char34}}"
-
-%format family = "\mathbf{family}"
-%format forall = "\forall\!"
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Notation
-
-%%% Symbols %%%
-
-%format :>>=: = ":\!">>="\!:"
-%format $$ = "{\color{darkblue} \tt{~\$~}}"
-
-%%% Types %%%
-
-%format Value      = "{\color{darkgreen} \tt{Value}}"
-%format Query      = "{\color{darkblue} \tt{Query}}"
-%format Data       = "{\color{darkred} \tt{Data}}"
-%format Responses  = "{\color{darkblue} \tt{Responses}}"
-%format Epsilon    = "\epsilon"
-%format Delta      = "\delta"
-%format Beta       = "\beta"
-%format Alpha      = "\alpha"
-%format delta      = "\Delta"
-%format sigma      = "\sigma"
-
-%% Type variables
-%format stb = "{\color{darkblue} \tt{s} }"
-%format row = "{\color{darkblue} \tt{r} }"
-
-%% Transformations
-%format dpWhere      = "{\color{darkred} \tt{dpWhere} }"
-%format dpUnion      = "{\color{darkred} \tt{dpUnion} }"
-%format dpIntersect  = "{\color{darkred} \tt{dpIntersect} }"
-%format dpSelect     = "{\color{darkred} \tt{dpSelect} }"
-%format dpPartition  = "{\color{darkred} \tt{dpPart} }"
-%format dpPartRepeat = "{\color{darkred} \tt{dpPartRepeat} }"
-%format dpGroupBy    = "{\color{darkred} \tt{dpGroupBy} }"
-
-%% Aggregations
-%format dpCount = "{\color{darkblue} \tt{dpCount} }"
-%format dpSum   = "{\color{darkblue} \tt{dpSum} }"
-%format dpAvg   = "{\color{darkblue} \tt{dpAvg} }"
-%format dpMax   = "{\color{darkblue} \tt{dpMax} }"
-
-%% Analysis & Execution
-%format accuracy  = "{\color{darkblue} \tt{accuracy} }"
-%format budget    = "{\color{darkblue} \tt{budget} }"
-%format budgetAdv = "{\color{darkblue} \tt{budgetAdv} }"
-%format dpEval    = "{\color{darkred} \tt{dpEval} }"
-
-%% Combinators
-%format normL1  = "{\color{darkgreen} \tt{norm}_{1} }"
-%format normL2  = "{\color{darkgreen} \tt{norm}_{2} }"
-%format normInf = "{\color{darkgreen} \tt{norm}_{\infty} }"
-%format rmsd    = "{\color{darkgreen} \tt{rmsd} }"
-%format add     = "{\color{darkgreen} \tt{add} }"
-%format neg     = "{\color{darkgreen} \tt{neg} }"
-%format add'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Formal rules formatting
@@ -88,30 +24,6 @@
 \newcommand{\val}[3]{\mathcal{S}[#1,#2,#3]}
 \newcommand{\icdfNM}[3]{\frac{4}{#1} \cdot \mathit{log}(\frac{#2}{#3})}
 
-%%% Notation %%%
-
-%format Env     = "\Gamma"
-%format divisor = "\vdash"
-%format iCDFk   = iCDF"_j"
-%format tsk     = ts"_j"
-%format sk      = s"_j"
-%format sMax    = s"_M"
-%format SymData = "\mathcal{D}"
-%format nextk   = next"_j"
-%format bigCup  = "\textstyle \bigcup_{j=1 \dots n}"tsk
-%format allStdv = "\textstyle \sum_{j=1}^n" sk
-%format sqrtAllStdv = "\sqrt{\textstyle \sum_{j=1}^n" sk"^{2}}"
-
-%format haskell (c) (d)              = "\haskellM{"c"}{"d"}"
-%format haskellS (c) (d)             = "\haskellS{"c"}{"d"}"
-%format conf (c) (t)                 = "\confM{"c"}{"t"}"
-%format value (icdf) (scale) (label) = "\val{"icdf"}{"scale"}{"label"}"
-%format inEnv (ds) (env)             = "\inEnv{"ds"}{"env"}"
-%format errorL (beta) (scale)        = "\errorLap{"beta"}{"scale"}"
-%format scaleL (stab) (sen) (e)      = "\scale{"stab"}{"sen"}{"e"}"
-%format icdfdpMax (eps) (len) (beta) = "\icdfNM{"eps"}{"len"}{"beta"}"
-%format errorG (beta) (stdev)        = "\errorGauss{"beta"}{"stdev"}"
-%format stdevG (stab) (sen) (e) (d)  = "\stdev{"stab"}{"sen"}{"e"}{"d"}"
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Math macros

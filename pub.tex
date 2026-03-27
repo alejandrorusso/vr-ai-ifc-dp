@@ -1,0 +1,297 @@
+% !TEX program = xelatex
+\documentclass{kawcv}
+
+\usepackage{pdfpages}
+\usepackage{supertabular}
+\usepackage[table]{xcolor}
+\usepackage{soul}
+\usepackage{multicol}
+\usepackage{paralist}
+\usepackage[para]{footmisc}
+\usepackage{graphicx}
+\usepackage{mdframed}
+\usepackage{makecell}
+
+\usepackage{bibunits}
+
+\bibliographyunit[\subsection]
+\bibliography*{russo}
+
+\newcommand{\me}[1]{\fcolorbox{black}{white}{\underline{\textbf{#1}}}}
+\newcommand{\student}[1]{\fcolorbox{black}{lightgray!40}{#1}}
+
+%% Removes the header "References"
+\makeatletter
+\renewenvironment{thebibliography}[1]
+     {\list{\@biblabel{\@arabic\c@enumiv}}%
+           {\settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin\labelwidth
+            \advance\leftmargin\labelsep
+            \@openbib@code
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}}%
+      \sloppy
+      \clubpenalty4000
+      \@clubpenalty \clubpenalty
+      \widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
+\makeatother
+
+
+%% Compact lists
+\newenvironment{CompactItemize}%
+  {\begin{list}{$\blacktriangleright$}%
+   {\leftmargin=16pt \itemsep=2pt \topsep=2pt
+     \parsep=0pt \partopsep=0pt}}%
+  {\end{list}}
+\renewcommand{\labelitemi}{}
+
+
+\newif\ifimportantpub
+\importantpubfalse
+
+%% To highlight publications
+\definecolor{lightblue}{RGB}{196,209,199}
+\definecolor{subcolor}{RGB}{255,178,102}
+\definecolor{ratecolor}{RGB}{255,102,102}
+
+
+\setlength{\fboxrule}{0pt} %% No borders
+
+\ifimportantpub
+  \newcommand{\important}[1]{\fcolorbox{black}{lightblue}{#1}}
+\else
+  \newcommand{\important}[1]{{#1}}
+\fi
+
+\newcommand{\sub}[1]{}
+\newcommand{\rate}[1]{}
+
+\begin{document}
+\onecolumn
+
+\kawapplication{Secure AI Agents by Construction: Information Flow Control and Differential Privacy for LLM Tool Use}{A. Russo
+  (19780228--7875), \emph{PhD awarded on February 2009}}
+
+\section{1.Bibliometric information}
+
+\begin{CompactItemize}
+
+\item \textbf{Peer-reviewed articles}: 78 
+\item \textbf{Total citations} (Google scholar): 3258
+\item \textbf{h-index} (Google scholar): 31
+\item \textbf{i-index} (Google scholar): 55
+
+My publication record spreads across several venues from different research
+communities: programming languages, security, and systems.
+%
+Taking the conference ranking CORE 2026 \footnote{\url{http://portal.core.edu.au/}},
+I have 7 publications in \emph{flagship} A+ conferences: 1 IEEE S\&P, 3 x ACM
+SIGSAC CCS, 1 ACM SIGPLAN POPL (distinguished work), and 2 x USENIX OSDI.
+%
+I also have 15 publications in \emph{top-venues} A conferences: 3 x ACM SIGPLAN
+ICFP (one publication got the most influencial paper award in 2022), 1 x ACM
+SIGPLAN OOPSLA, 1 x IEEE ICST, 7 x IEEE CSF, 2 x ESORICS, and 1 USENIX HotOS,
+as well as prestigious journals like JFP (Cambridge Press), JCS (IOS Press),
+and TOPLAS (ACM).
+
+\end{CompactItemize}
+
+\section{2. Selection of research output}
+My name is in \me{bold}, while student contributions are in \student{gray}. For
+all publications listed below, I significantly contributed to the writing of
+the paper. 
+%
+\begin{enumerate}[1]
+  %% DP 
+  \item \me{A. Russo}, E. Lobo-Vesga, and M. Gaboardi: \emph{Accuracy for
+    Differentially Private Quotients by Fractional Uncertainties} in Proc. of
+    ACM SIGSAC Computer and Communication Security (\textbf{CCS}), 2025.
+  %
+    I conceived the seminal idea and did initial experiments. 
+  %
+    Quantifying accuracy of DP mechanisms is critical for trustworthy and
+    useful AI data releases.
+
+\item E. Lobo-Vesga, \me{A. Russo}, and M. Gaboardi: \emph{Sensitivity by
+  Parametricity} in Proc. of ACM SIGPLAN Object-Oriented Programming, Systems,
+  Languages \& Applications (\textbf{OOPSLA}), 2024.
+  %
+  I conceived the seminal idea and initial prototype implementation.
+  %
+  Automatically deriving sensitivity bounds via type theory helps into 
+  generating correct DP queries in AI pipelines. 
+
+\item \student{E. Lobo-Vesga}, \me{A. Russo}, M. Gaboardi: \emph{A Programming
+  Language for Data Privacy with Accuracy Estimations} in Journal of ACM
+  Transactions on Programming Languages and Systems (\textbf{TOPLAS}), 2021.
+  %
+  I contributed 
+  to the design and implementation of several new features of the IEEE S\&P 2020 paper.  %
+  %
+  This language-based DP approach underpins the component 
+  for safe AI data releases.
+
+  \item \student{E. Lobo-Vesga}, \me{A. Russo}, M. Gaboardi:
+    \emph{A Programming Framework for Differential Privacy with Accuracy Concentration Bounds} in Proc. of 41th IEEE Symposium on Security and
+    Privacy (\textbf{S\&P}), 2020.
+  %
+  I had the initial key technical idea which then developed in this work.
+  %
+    The DPella framework for accuracy-aware DP query
+    generation directly informs the DP component of this proposal.
+
+  %% IFC 
+
+\item \student{M. Vassena}, \me{A. Russo}, D. Garg,
+  \student{V. Rajani}, and D. Stefan: \emph{From Fine- to Coarse-Grained Dynamic Information Flow Control and Back} in Proc. of ACM SIGPLAN Symposium
+  on Principles of Programming Languages (\textbf{POPL}), 2019
+  (\textbf{distinguished paper}), 2019.
+  %
+  I came up with several proof techniques to complete our mechanized proofs.
+  %
+  This work provides theoretical foundations for dynamic IFC. 
+
+
+
+\item \student{T. Schmitz}, \student{M. Algehed}, C. Flanagan,
+  and \me{A. Russo}: \emph{Faceted Secure Multi-Execution} in Proc. of ACM
+  SIGSAC Computer and Communications Security (\textbf{CCS}), 2018.
+  %
+  I did the initial implementations as well as a novel proof technique (candidate labels).
+  %
+  This work could be applied to separate untrusted data read by AI agents
+  from trusted descriptions, as suggested by dual-LLMs approach.
+
+%% Old IFC
+
+\item \student{D. Stefan}, \student{E.Z. Yang}, \student{P. Marchenko}, \me{A. Russo}, D. Herman, B. Karp, and D. Mazi\`{e}res: \emph{Protecting Users by Confining JavaScript with COWL} in Proc.
+  of 11th USENIX Symposium on Operating Systems Design and Implementation
+  (\textbf{OSDI}), 2014.
+  %
+  I contributed to the main design and use cases. 
+  %
+  COWL demonstrates practical IFC-based confinement of
+  untrusted code. 
+
+\item \student{D. Stefan}, \me{A. Russo}, \student{P. Buiras}, \student{A.
+  Levy}, J.C. Mitchell, and D. Mazi\`{e}res: \emph{Addressing Covert
+  Termination and Timing Channels in Concurrent Information Flow Systems} in
+  Proc. of 17th ACM SIGPLAN International Conference on Functional Programming
+  (\textbf{ICFP}), 2012 (\textbf{most influential paper award}).
+  %
+  I introduced the key ideas. 
+  %
+  Enforcement of IFC for concurrent systems can be applied to AI pipelines. 
+
+\item \student{D.B. Giffin}, \student{A. Levy}, \student{D. Stefan},
+  \student{D. Terei}, D. Mazi\`{e}res, J.C. Mitchell, and
+  \me{A. Russo}: \emph{Hails: Protecting Data Privacy in Untrusted Web Applications} in Proc. of 10th USENIX Symposium on Operating Systems Design
+  and Implementation (\textbf{OSDI}), 2012.
+  %
+  I contributed to the design of the system. 
+  %
+  This work provides a blueprint for confining untrusted MCP tools. 
+
+\item T. Tsai, \me{A. Russo}, and J. Hughes: \emph{A Library for Secure
+  Multi-threaded Information Flow in Haskell} in Proc. of 20th IEEE Computer
+  Security Foundations Symposium (\textbf{CSF}), 2007.
+  %
+  I developed some of the IFC tracking  techniques.
+  %
+  This work directly informs the proposal's use of Arrow-based DSLs to enforce
+  control-flow integrity in AI agent planning pipelines.
+
+\end{enumerate}
+
+\section{3. Relevant peer-reviewed research outputs from 2018--2026}
+
+All publications below are peer-reviewed conference papers or journal articles.
+
+\begin{enumerate}[1]
+
+  %% 2025
+  \item \me{A. Russo}, E. Lobo-Vesga, and M. Gaboardi: \emph{Accuracy for
+    Differentially Private Quotients by Fractional Uncertainties} in Proc. of
+    ACM SIGSAC Computer and Communication Security (\textbf{CCS}), 2025.
+
+  %% 2024
+\item E. Lobo-Vesga, \me{A. Russo}, and M. Gaboardi: \emph{Sensitivity by
+  Parametricity} in Proc. of ACM SIGPLAN Object-Oriented Programming, Systems,
+  Languages \& Applications (\textbf{OOPSLA}), 2024.
+
+\item M.E. Cambronero, M.A. Mart\'inez-Pietro, L.F. Llana D\'iaz, and
+  \me{A. Russo}: \emph{Towards a GDPR-compliant cloud architecture with data
+  privacy controlled through sticky policies} in PeerJ Computer Science,
+  Vol.~10, 2024.
+
+  %% 2023
+\item \student{A. Sarkar}, \student{R. Krook}, \me{A. Russo}, and K. Claessen:
+  \emph{HasTEE: Programming Trusted Execution Environments with Haskell} in
+  Proc. of the 16th ACM SIGPLAN International Symposium on Haskell
+  (\textbf{Haskell}), 2023.
+
+\item \student{M. Pettersson}, \student{J. Ljung Ekeroth}, and \me{A. Russo}:
+  \emph{Calculating Function Sensitivity for Synthetic Data Algorithms} in
+  Proc. of the 35th Symposium on Implementation and Application of Functional
+  Languages (\textbf{IFL}), 2023.
+
+\item \student{M. Vassena}, \me{A. Russo}, D. Garg, \student{V. Rajani}, and
+  D. Stefan: \emph{From Fine- to Coarse-Grained Dynamic Information Flow
+  Control and Back} in Foundations and Trends in Programming Languages,
+  Vol.~8, No.~1, pp.~1--117, 2023.
+
+  %% 2021
+\item \student{E. Lobo-Vesga}, \me{A. Russo}, M. Gaboardi: \emph{A Programming
+  Language for Data Privacy with Accuracy Estimations} in Journal of ACM
+  Transactions on Programming Languages and Systems (\textbf{TOPLAS}), 2021.
+
+  %% 2020
+\item \student{E. Lobo-Vesga}, \me{A. Russo}, M. Gaboardi:
+  \emph{A Programming Framework for Differential Privacy with Accuracy
+  Concentration Bounds} in Proc. of 41th IEEE Symposium on Security and
+  Privacy (\textbf{S\&P}), 2020.
+
+\item \student{C. Tom\'e Corti\~nas}, \student{M. Vassena}, and \me{A. Russo}:
+  \emph{Securing Asynchronous Exceptions} in Proc. of the 33rd IEEE Computer
+  Security Foundations Symposium (\textbf{CSF}), 2020.
+
+\item \student{N. Valliappan}, \student{R. Krook}, \me{A. Russo}, and K. Claessen:
+  \emph{Towards Secure IoT Programming in Haskell} in Proc. of the 13th ACM
+  SIGPLAN International Symposium on Haskell (\textbf{Haskell}), 2020.
+
+  %% 2019
+\item \student{M. Vassena}, \me{A. Russo}, D. Garg,
+  \student{V. Rajani}, and D. Stefan: \emph{From Fine- to Coarse-Grained
+  Dynamic Information Flow Control and Back} in Proc. of ACM SIGPLAN Symposium
+  on Principles of Programming Languages (\textbf{POPL}), 2019
+  (\textbf{distinguished paper}).
+
+\item \student{M. Algehed}, \me{A. Russo}, and C. Flanagan:
+  \emph{Optimising Faceted Secure Multi-Execution} in Proc. of the 32nd IEEE
+  Computer Security Foundations Symposium (\textbf{CSF}), 2019.
+
+  %% 2018
+\item \student{M. Vassena}, \me{A. Russo}, and \student{P. Buiras}: \emph{MAC:
+  A verified static information-flow control library} in the Journal of Logical
+  and Algebraic Methods in Programming. Vol.~95, 2018.
+
+\item \student{T. Schmitz}, \student{M. Algehed}, C. Flanagan,
+  and \me{A. Russo}: \emph{Faceted Secure Multi-Execution} in Proc. of ACM
+  SIGSAC Computer and Communications Security (\textbf{CCS}), 2018.
+
+\end{enumerate}
+
+\section{4. Relevant non peer-reviewed research outputs from 2018--2026}
+
+Non applicable.
+
+\label{lastpage}
+
+
+
+\end{document}
