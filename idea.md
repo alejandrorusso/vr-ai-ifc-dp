@@ -17,45 +17,49 @@ Main motivation:
 - This proposal introduces a secure, trustworthy AI architecture based on (i)
   Information Flow Control (IFC), a technology from the military domain that
   enforces end-to-end confidentiality and integrity, and (ii) Differential
-  Privacy (DP) for quantifiable privacy guarantees in data releases. 
+  Privacy (DP) for quantifiable privacy guarantees for data releases. 
 
 - We adapt IFC and DP to modern AI systems, enabling LLMs to safely interact
   with data and MCP tools to create AI agents which, by construction, it
-  prevents unauthorized information flows and malicious manipulation of AI
-  agents.  
-
+  provides confinement, mitigates malicious manipulation by prompt injections,
+  and safely consume data insights from sensitive data. 
 
 These are the technical challenges the proposal will address: 
 
 # Goal 1: ensuring control flow integrity via a strongly-typed domain specific language (DSL)
-    - Challenge: (i) design of an AI planning DSL that is flexible enough and encodes several of 
-      the patterns found "Design Patterns for Securing LLM Agents against Prompt Injections", 
+    - Challenge: (i) design of an AI planning DSL that is flexible enough and
+      encodes several of the patterns found [Design Patterns for Securing LLM
+      Agents against Prompt Injections](./biblio/ai security/patterns.pdf),
       specially those that depend on data processed by LLMs -- where prompt
       injection attacks can occur; and (ii) provide enough typing discipline in
       the DSL that type-errors can help the LLM to synthezise correct plans --
       thus reducing hallucinations.
-    - Novelty: using Arrows to encode several of the patterns described in the
-      paper "Design Patterns for Securing LLM Agents against Prompt Injections"
-      (see papers)
-    - How to do it: I need to think about this
+    - Proposal: using [Arrows](./biblio/arrows/arrows.pdf) to encode several of
+      the patterns described in the paper [Design Patterns for Securing LLM
+      Agents against Prompt Injections](./biblio/ai security/patterns.pdf).  
+    - Technique: I need to think about this but it and perhaps I can get
+      inspired by some of my [previous work on IFC on
+      arrows](./biblio/arrows/arrows_ifc.pdf)
 
 # Goal 2: mitigating prompt injection attacks while providing confinement 
     - Challenge: provide a harness for AI agents that mitigates prompt injection
       attacks by construction but also that preserves that confidentiality and
       integrity of the data being processed by the LLM. 
-    - Novelty: A floating label information-flow control system for AI agents. 
-    - How to do it: 
-        - Repurposing several of my work on LIO -- a language-based approach for 
-          OS Mandatory Access control principles (see papers) -- so that we
-          obtain a flexible IFC control for AI agents (reducing label creep).  
-        - Based on FIDES (see Microsoft paper), we will encode it in the shape
-          of LIO principles.
-        - Using file system permissions as IFC labels to be practical while 
-        theoretical sound. We will encode UNIX file-like permissions into
-        DC-labels (see papers). 
-        - Implementing end-to-end IFC tracking for agents at the OS-level by 
-        leveraging eBPF -- thus showing that eBPF has evolved enough to support 
-        such a design. 
+    - Proposal: A floating label information-flow control system for AI agents. 
+    - Technique: 
+        - Repurposing several of my work on [LIO](./biblio/lio/lio-jfp.pdf) -- a
+          language-based approach for OS Mandatory Access control principles
+          applied to [concurrent systems](./biblio/lio/lio-concurrent.pdf), and
+          the [web](./biblio/practical lio-principles/cowl.pdf) -- so that we
+          obtain a flexible IFC control for AI agents that reduces label creep.  
+        - We show that we can encode [FIDES](./biblio/ai security/fides.pdf) in
+          term of LIO for AI agents. 
+        - We will use file system permissions as IFC labels to be practical
+          while theoretical sound. We will encode UNIX file-like permissions
+            into [DC-labels](./biblio/lio/dc-labels.pdf). 
+        - Implementing end-to-end IFC tracking for agents at the OS-level by
+          leveraging [eBPF](./biblio/ebpf/Engineering_Everything_with_eBPF.pdf)
+          -- thus showing that eBPF has evolved enough to support such a design. 
 
 # Goal 3: privacy boundary for AI agents accessing sensitive data 
     - Challenge: often, Agents want to access data to learn about trends of 
@@ -63,14 +67,21 @@ These are the technical challenges the proposal will address:
     the LLM will get tainted quickly and hit the label creep problem. In this 
     light, we want a mechanism that AI agents can mine data insights without 
     getting tainted. 
-    - Novelty: we will connect LLM agents with DP systems (something that has 
-    not been explored before). As most tools provide custom programming
-    languages (because they need to have a strict control about what is learned
-    form the data), LLM needs to generate queries in domain-specific languages
-    that have not been trained before. 
-
-
-    - Generation of queries: use of high-level encoding of invariants in queries (a
-      bit what DPella does) for generating them. 
-    - Systematization of DP into prompts (a bit of prompt engineering)
-    - Cache via normalization by evaluation 
+    - Proposal: we will connect LLM agents with Differential Privacy systems
+      (something that has not been explored before). As most tools provide
+      custom programming languages (because they need to have a strict control
+      about what is learned form the data), LLM needs to generate queries in
+      domain-specific languages that have not been trained before. 
+    - Technique: we propose that AI agents only extract differentially private
+      results from sensitive data. In that manner, AI agents only see
+      privacy-protected insigts. 
+        - Propose a domain-specific language that encodes at the type-level
+          several invariants in queries related to enforce the right injection
+          of calibrated noise by the DP mechansim. This is inspired by the PI's
+          work on [Sensitivity by Parametricity](./biblio/dp/sensitivity_parametricity.pdf) and 
+          [DPella](./biblio/dp/sp20.pdf).
+        - Systematization of DP workflows into prompts (a bit of prompt
+          engineering), e.g., analyzing the schema of the dataset, then propose
+          typical data analyses (maybe guided by synthetized examples),
+          exploration of privacy-accuracy trade-offs, and visualization. This
+          has not been tried before to the best of my knowledge.
