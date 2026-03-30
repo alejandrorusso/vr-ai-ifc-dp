@@ -46,6 +46,14 @@
 \label{sec:purpose}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{figure}[b]
+  \begin{framed}
+  \centering
+  \includegraphics[width=\linewidth]{attack.png}
+  \caption{Attacks on MCP-based AI agents.\label{fig:attack}}
+\end{framed}
+\end{figure}
+%
 Large Language Models (LLMs) are rapidly integrated into high-stakes
 decision-making workflows across healthcare, finance, law, and critical
 infrastructure, where they act as autonomous
@@ -56,7 +64,7 @@ the real world: querying databases, executing code, calling APIs, and
 orchestrating further sub-agents, primarily through the Model Context Protocol
 (MCP)~\cite{MCP:Anthropic24}.
 %
-Today's MCP-based deployments are \emph{insecure by design}~\cite{Zhao:ParasiticMCP26}. 
+Today's MCP-based deployments are \emph{insecure by design}~\cite{Zhao:ParasiticMCP26} (see Figure \ref{fig:attack}). 
 %
 MCP servers enforce only coarse-grained \emph{access control}: they regulate
 which tools and data sources an agent may invoke, but provide no guarantees on
@@ -81,6 +89,14 @@ Existing defences (e.g.,
 \cite{BeurerKellner:Patterns25,Debenedetti:AgentDojo24}) are mostly
 probabilistic and ad-hoc with lack of security guarantees.
 
+\begin{figure}[t]
+  \begin{framed}
+  \centering
+  \includegraphics[width=\linewidth]{framework.png}
+  \caption{Overview of the proposed framework.\label{fig:framework}}
+\end{framed}
+\end{figure}
+
 This proposal introduces a secure, trustworthy AI framework grounded in two
 formally verified security technologies: (i)~\emph{Information Flow Control}
 (IFC)~\cite{BellLaPadula:73,Sabelfeld:Myers:JSAC}, which enforces end-to-end
@@ -93,7 +109,7 @@ safely interact with data and MCP tools while, \emph{by construction},
 confining information, mitigating prompt injection, and safely delivering
 privacy-protected insights from sensitive data.
 %
-The proposal pursues three goals of increasing security strength:
+The proposal amis to achieve three goals of increasing security strength (see Figure \ref{fig:framework}):
 
 \paragraph{Aim 1: Control-flow integrity}
 The first challenge is that AI planning is inherently data-dependent: agents
@@ -105,8 +121,8 @@ domain-specific language (DSL) that encodes agent plans as typed computation
 graphs.
 %
 Arrows are a functional abstraction for \emph{data-flow graphs}---the same
-computational model underlying automation tools such as n8n\footnote{\url{https://n8n.io}} and
-LangGraph\footnote{\url{https://langchain-ai.github.io/langgraph/}}---where nodes represent computations and edges data
+computational model underlying automation tools such as n8n and
+LangGraph\footnote{\tiny \url{https://n8n.io} (n8n) \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---where nodes represent computations and edges data
 between them; crucially, the graph topology is fixed at construction time,
 making control flow statically inspectable and amenable to formal analysis.
 %
