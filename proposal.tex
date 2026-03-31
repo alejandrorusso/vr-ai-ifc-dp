@@ -109,88 +109,55 @@ safely interact with data and MCP tools while, \emph{by construction},
 confining information, mitigating prompt injection, and safely delivering
 privacy-protected insights from sensitive data.
 %
-The proposal amis to achieve three goals of increasing security strength (see Figure \ref{fig:framework}):
+The proposal aims to address three challenges of increasing security strength (see Figure \ref{fig:framework}):
 
-\paragraph{Aim 1: Control-flow integrity}
+\paragraph{Challenge 1: Control-flow integrity}
 The first challenge is that AI planning is inherently data-dependent: agents
 branch, loop, and call tools based on LLM outputs, opening the door to
 prompt-injection-induced control-flow hijacking.
 %
-We will design a strongly-typed, Arrow-based~\cite{hughes:generalising-monads-arrows}
-domain-specific language (DSL) that encodes agent plans as typed computation
-graphs.
+\emph{Can we design a planning language where control flow is not affected by
+prompt injection attacks?}
 %
-Arrows are a functional abstraction for \emph{data-flow graphs}---the same
-computational model underlying automation tools such as n8n and
-LangGraph\footnote{\tiny \url{https://n8n.io} (n8n) \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---where nodes represent computations and edges data
-between them; crucially, the graph topology is fixed at construction time,
-making control flow statically inspectable and amenable to formal analysis.
-%
-The DSL will be expressive enough to capture the principled design patterns for
-prompt-injection-resistant agents identified in recent
-work~\cite{BeurerKellner:Patterns25}, covering patterns that depend on data
-processed by LLMs and are therefore most vulnerable.
-%
-% Crucially, the typing discipline serves a \emph{dual purpose}: type errors at plan
-% construction time statically rule out injected plan transitions, \emph{and}
-% provide feedback that helps the LLM synthesise correct plans, thus reducing
-% hallucinations.
-%
-By making data flow explicit in the graph structure, security properties become
-statically enforceable---a direction the PI has pioneered in prior work on
-Arrows~\cite{Tsai:Russo:Hughes:CSF07}. 
 
-\paragraph{Aim 2: Confinement and integrity of data}
+\paragraph{Challenge 2: Confinement and integrity of data}
 %
-The second challenge is preserving confidentiality and integrity of data
-processed by AI agents. 
+The second challenge is applying IFC to AI agent pipelines, where three
+difficulties arise.
 %
-We will build a floating-label IFC harness for AI agents by adapting and
-extending LIO~\cite{stefan:lio,stefan:addressing-covert}---the PI's
-language-based IFC system for functional concurrent programs, later extended
-to the web~\cite{COWL,giffin:hails}---to the novel setting of LLM--MCP
-interactions.
+First, the LLM acts as an \emph{intermediary}: it receives inputs
+from multiple principals---users, system prompts, and MCP tool
+responses---each carrying different sensitivity levels, and freely mixes them
+in its outputs; IFC must therefore propagate labels dynamically across every
+LLM invocation.
 %
-principals~\cite{Myers:Liskov:SOSP97,Stefan:2011} (e.g., users, services, or regulatory
-domains) and are propagated automatically as data flows through the system.
+Second, the \emph{trust level of tool outputs is not statically known}: an
+MCP server may return benign data or adversarially crafted content, so labels
+must be assigned and enforced at runtime at the tool boundary.
 %
-In our setting, labels will be grounded in file-system-like permissions
-encoded as DC-labels~\cite{Stefan:2011}---the PI's own label algebra---making
-policies immediately interpretable to practitioners.
+Third, today's MCP deployments lack any \emph{trust model}: servers do not
+declare the sensitivity of the data they handle, leaving agents
+overprivileged by default~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}.
 %
-% We will show how to encode the FIDES trust model~\cite{Costa:FIDES25} in
-% terms of LIO.
-%
-To make LIO-style IFC widely deployable in modern systems, we further propose
-to implement it using eBPF~\cite{Vieira:eBPF20}---a Linux kernel technology
-that allows sandboxed programs to run inside the OS without modifying the
-kernel or existing applications---enabling enforcement of information flow
-policies at the OS level without requiring changes to existing MCP servers.
+\emph{Can IFC be adapted to AI agent pipelines to provide provable
+confidentiality and integrity across the LLM--MCP boundary?}
 
-\paragraph{Goal 3: Privacy-bounded data consumption.}
-The third challenge arises specifically from Goal 2: to answer queries about
-population trends, agents are likely to access raw individual records in
-sensitive databases.
 %
-Under a pure IFC system, this immediately raises the agent's label to the
-data's sensitivity level---the well-known \emph{label-creep}
-problem---rendering the agent unable to communicate any findings to
-lower-clearance observers.
+\paragraph{Challenge 3: Privacy-bounded data consumption.}
+The third challenge arises specifically from Challenge~2: to answer queries
+about population trends, agents are likely to access raw individual records
+in sensitive databases.
 %
-The key insight is that agents rarely need raw records: what they need are
-\emph{aggregate statistics and trends}, which can be computed and delivered
-safely without ever exposing individual data to the agent.
+Under a pure IFC system, every contact with sensitive data raises the
+agent's label to match that data's sensitivity level.
 %
-We will therefore interpose a DP layer between agents and sensitive datasets:
-agents query data exclusively through a type-safe DP query DSL building on
-the PI's DPella system~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21} and the
-PI's sensitivity-by-parametricity technique~\cite{LoboVesga:OOPSLA24},
-receiving only calibrated, privacy-protected statistical insights---and never
-getting tainted by raw sensitive data.
+In this scenario, an agent quickly becomes \emph{too tainted} and cannot longer
+send results to the user, or call tools---this is the well-known
+\emph{label-creep} problem.
 %
-This makes the DP release the \emph{declassification primitive} of the IFC
-system, providing a principled and formally justified solution to label
-creep in AI pipelines.
+\emph{Can agents derive useful insights from sensitive data without ever
+getting tainted?}
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{State of the art}
@@ -367,6 +334,92 @@ pattern~\cite{BeurerKellner:Patterns25}.
 \section{Project description}
 \label{sec:description}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% TO KEEP
+
+\paragraph{Aim 1: Control-flow integrity}
+The first challenge is that AI planning is inherently data-dependent: agents
+branch, loop, and call tools based on LLM outputs, opening the door to
+prompt-injection-induced control-flow hijacking.
+%
+We will design a strongly-typed, Arrow-based~\cite{hughes:generalising-monads-arrows}
+domain-specific language (DSL) that encodes agent plans as typed computation
+graphs.
+%
+Arrows are a functional abstraction for \emph{data-flow graphs}---the same
+computational model underlying automation tools such as n8n and
+LangGraph\footnote{\tiny \url{https://n8n.io} (n8n) \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---where nodes represent computations and edges data
+between them; crucially, the graph topology is fixed at construction time,
+making control flow statically inspectable and amenable to formal analysis.
+%
+The DSL will be expressive enough to capture the principled design patterns for
+prompt-injection-resistant agents identified in recent
+work~\cite{BeurerKellner:Patterns25}, covering patterns that depend on data
+processed by LLMs and are therefore most vulnerable.
+%
+% Crucially, the typing discipline serves a \emph{dual purpose}: type errors at plan
+% construction time statically rule out injected plan transitions, \emph{and}
+% provide feedback that helps the LLM synthesise correct plans, thus reducing
+% hallucinations.
+%
+By making data flow explicit in the graph structure, security properties become
+statically enforceable---a direction the PI has pioneered in prior work on
+Arrows~\cite{Tsai:Russo:Hughes:CSF07}. 
+
+\paragraph{Aim 2: Confinement and integrity of data}
+%
+The second challenge is preserving confidentiality and integrity of data
+processed by AI agents. 
+%
+We will build a floating-label IFC harness for AI agents by adapting and
+extending LIO~\cite{stefan:lio,stefan:addressing-covert}---the PI's
+language-based IFC system for functional concurrent programs, later extended
+to the web~\cite{COWL,giffin:hails}---to the novel setting of LLM--MCP
+interactions.
+%
+principals~\cite{Myers:Liskov:SOSP97,Stefan:2011} (e.g., users, services, or regulatory
+domains) and are propagated automatically as data flows through the system.
+%
+In our setting, labels will be grounded in file-system-like permissions
+encoded as DC-labels~\cite{Stefan:2011}---the PI's own label algebra---making
+policies immediately interpretable to practitioners.
+%
+% We will show how to encode the FIDES trust model~\cite{Costa:FIDES25} in
+% terms of LIO.
+%
+To make LIO-style IFC widely deployable in modern systems, we further propose
+to implement it using eBPF~\cite{Vieira:eBPF20}---a Linux kernel technology
+that allows sandboxed programs to run inside the OS without modifying the
+kernel or existing applications---enabling enforcement of information flow
+policies at the OS level without requiring changes to existing MCP servers.
+
+\paragraph{Goal 3: Privacy-bounded data consumption.}
+The third challenge arises specifically from Goal 2: to answer queries about
+population trends, agents are likely to access raw individual records in
+sensitive databases.
+%
+Under a pure IFC system, this immediately raises the agent's label to the
+data's sensitivity level---the well-known \emph{label-creep}
+problem---rendering the agent unable to communicate any findings to
+lower-clearance observers.
+%
+The key insight is that agents rarely need raw records: what they need are
+\emph{aggregate statistics and trends}, which can be computed and delivered
+safely without ever exposing individual data to the agent.
+%
+We will therefore interpose a DP layer between agents and sensitive datasets:
+agents query data exclusively through a type-safe DP query DSL building on
+the PI's DPella system~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21} and the
+PI's sensitivity-by-parametricity technique~\cite{LoboVesga:OOPSLA24},
+receiving only calibrated, privacy-protected statistical insights---and never
+getting tainted by raw sensitive data.
+%
+This makes the DP release the \emph{declassification primitive} of the IFC
+system, providing a principled and formally justified solution to label
+creep in AI pipelines.
+
+
+
 
 The project runs for four years, employs two PhD students and one postdoc,
 and is structured into four work packages (WPs) that correspond to the
