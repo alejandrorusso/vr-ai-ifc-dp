@@ -164,6 +164,44 @@ getting tainted?}
 \label{sec:sota}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\paragraph{Information Flow Control.}
+IFC enforces policies like \emph{noninterference}~\cite{Goguen82}---the formal guarantee
+that secret inputs cannot influence public outputs.
+%
+It can be provided at two levels of granularity.
+%
+At the \emph{OS level}~\cite{BellLaPadula:73,Efstathopoulos:2005,Zeldovich:2006}, a single label is assigned to each process, offering a coarse-grained but
+deployment-friendly enforcement model.
+%
+At the \emph{programming language level}, each variable carries its own label, enabling
+fine-grained tracking; representative compilers and interpreters include
+Jif~\cite{jif} (Java), FlowCaml~\cite{FlowCaml} (Ocaml),
+Paragon~\cite{conf/aplas/BrobergDS13}(Java), and JSFlow~\cite{JSFlow}(Javascript).
+%
+The PI has developed a family of libraries that enforce IFC through a
+typed API---if programs are written against the library interface, IFC is
+enforced by construction~\cite{Russo+:Haskell08,Russo:2015,DBLP:conf/ccs/AlgehedR17}.
+%
+Among these, LIO~\cite{stefan:lio,stefan:addressing-covert,Stefan:LIO:JFP16}
+brings OS-level floating-label IFC into a language-level setting---a
+combination the PI formally proved to be equally expressive as fine-grained
+language-level IFC~\cite{VassenaRGRS19}---and received the
+\emph{Most Influential Paper} award~\cite{stefan:addressing-covert} at ACM SIGPLAN ICFP.
+%
+None of these systems targets AI agents.
+%
+The sole exception is (unpublished) FIDES work~\cite{Costa:FIDES25}, which
+applies IFC to AI agent planners with a formal model and deterministic policy
+enforcement.
+%
+However, FIDES targets a custom agent loop abstraction rather than MCP, and
+its primary focus is \emph{integrity}---preventing prompt injection from
+hijacking tool calls---while user data \emph{confidentiality} and the
+label-creep problem arising from sensitive database access remain unaddressed.
+%
+
+
+
 \paragraph{LLM agents and their security landscape.}
 Autonomous AI agents~\cite{Yao:ReAct23} extend LLMs with the ability to
 invoke external tools, query databases, and orchestrate sub-agents.
@@ -182,27 +220,6 @@ yet it remains at the design-pattern level and lacks a formal semantics or
 mechanized proofs.
 Existing defences thus share the same fundamental limitation: they are
 probabilistic, ad~hoc, and offer no end-to-end security guarantees.
-
-\paragraph{Information Flow Control.}
-IFC is a decades-old program-analysis discipline that enforces
-\emph{noninterference}~\cite{Goguen82}---the formal guarantee that secret
-inputs cannot influence public outputs---across entire program executions.
-The foundational policy model traces to Bell and LaPadula~\cite{BellLaPadula:73};
-the language-based formulation was consolidated by Sabelfeld and
-Myers~\cite{Sabelfeld:Myers:JSAC}.
-Dynamic, floating-label IFC was pioneered by the LIO
-system~\cite{stefan:lio}, which tracks information flow at runtime through a
-current-label monad and was later extended to concurrent
-programs~\cite{stefan:addressing-covert} and the web
-platform~\cite{COWL}.
-The Hails framework~\cite{giffin:hails} demonstrated that LIO-style IFC can
-be deployed in production web applications.
-DC-labels~\cite{Stefan:2011} provide a lattice of policies expressible as
-Boolean formulae over principals, making LIO policies both expressive and
-practitioner-friendly.
-None of these systems targets AI agents, and the label-creep problem
-that arises when agents consume sensitive data remains unsolved in the IFC
-literature.
 
 \paragraph{Differential Privacy.}
 Differential Privacy (DP)~\cite{Dwork:2006} provides the strongest
