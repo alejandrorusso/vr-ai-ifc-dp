@@ -124,8 +124,14 @@ prompt injection attacks?}
 
 \paragraph{Challenge 2: Confinement and integrity of data}
 %
-The second challenge is applying IFC to AI agent pipelines, where three
-difficulties arise.
+The second challenge is applying IFC to AI agent pipelines.
+%
+In IFC, every piece of data carries a \emph{label}---a tag denoting its
+sensitivity and integrity level (e.g., \emph{secret}/\emph{public} or
+\emph{trusted}/\emph{untrusted})---which the system propagates and enforces
+automatically as data flows through computations.
+%
+Applying this discipline to agents raises three difficulties.
 %
 First, the LLM acts as an \emph{intermediary}: it receives inputs
 from multiple principals---users, system prompts, and MCP tool
@@ -145,13 +151,14 @@ overprivileged by default~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}.
 confidentiality and integrity across the LLM--MCP boundary?}
 
 %
-\paragraph{Challenge 3: Privacy-bounded data consumption.}
-The third challenge arises specifically from Challenge~2: to answer queries
-about population trends, agents are likely to access raw individual records
-in sensitive databases.
+\paragraph{Challenge 3: Privacy-bounded data consumption}
+The third challenge arises specifically from Challenge~2. 
 %
-Under a pure IFC system, every contact with sensitive data raises the
-agent's label to match that data's sensitivity level.
+To answer queries about population trends, agents are likely to access raw
+individual records in sensitive databases.
+%
+Under a pure IFC system, every contact with sensitive data raises the agent's
+label to match that data's sensitivity level.
 %
 In this scenario, an agent quickly becomes \emph{too tainted} and cannot longer
 send results to the user, or call tools---this is the well-known
