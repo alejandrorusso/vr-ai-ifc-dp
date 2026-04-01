@@ -64,11 +64,11 @@ the real world: querying databases, executing code, calling APIs, and
 orchestrating further sub-agents, primarily through the Model Context Protocol
 (MCP)~\cite{MCP:Anthropic24}.
 %
-Today's MCP-based deployments are \emph{insecure by design}~\cite{Zhao:ParasiticMCP26} (see Figure \ref{fig:attack}). 
-%
-MCP servers enforce only coarse-grained \emph{access control}: they regulate
-which tools and data sources an agent may invoke, but provide no guarantees on
-how data propagates \emph{after} access is
+Current LLM orchestration frameworks---which connect agents to tools and
+data sources via MCP---are \emph{insecure by design}~\cite{Zhao:ParasiticMCP26}
+(see Figure~\ref{fig:attack}): they enforce only coarse-grained \emph{access
+control}, regulating which tools an agent may invoke but providing no
+guarantees on how data propagates \emph{after} access is
 granted~\cite{Sabelfeld:Myers:JSAC}.
 %
 Sensitive data retrieved by the agent can freely flow to unauthorised
@@ -164,7 +164,30 @@ getting tainted?}
 \label{sec:sota}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\paragraph{Information Flow Control.}
+\paragraph{LLM agents and their security landscape}
+The security risks of LLM-based agents are widely recognised, and several
+classes of countermeasure have been proposed.
+%
+At the \emph{model level}, alignment training and preference optimisation
+attempt to make models refuse adversarial
+instructions~\cite{Chen:StruQ:25,Chen:SecAlign:25}; however, these
+interventions offer only statistical guarantees and can trigger unexpected
+side-effects---fine-tuning on a narrow task can cause broad behavioural
+misalignment across unrelated domains~\cite{Betley:Misalignment26}.
+%
+At the \emph{system level}, input transformation techniques such as
+spotlighting~\cite{Hines:Spotlighting:24} mark trusted and untrusted content
+with special delimiters to reduce confusion; heuristic design
+patterns~\cite{BeurerKellner:Patterns25} provide structured mitigations for
+specific injection scenarios; and benchmarks~\cite{Liu:FormalizingPI:24,Debenedetti:AgentDojo24,Zhao:ParasiticMCP26}
+have systematically formalised and catalogued how all these defences are
+routinely bypassed.
+%
+None of these approaches provide no end-to-end, formally verifiable security
+guarantees.
+
+
+\paragraph{Information Flow Control}
 IFC enforces policies like \emph{noninterference}~\cite{Goguen82}---the formal guarantee
 that secret inputs cannot influence public outputs.
 %
@@ -197,58 +220,64 @@ enforcement.
 However, FIDES targets a custom agent loop abstraction rather than MCP, and
 its primary focus is \emph{integrity}---preventing prompt injection from
 hijacking tool calls---while user data \emph{confidentiality} and the
-label-creep problem arising from sensitive database access remain unaddressed.
+label-creep problem is not the main focus of the work. 
+
+
+\paragraph{Differential Privacy}
+Differential privacy (DP) \citep{Dwork:2006} is an emerging viable solution to
+release statistical information about a population with strong guarantees for
+the protection of individuals' privacy.
 %
-
-
-
-\paragraph{LLM agents and their security landscape.}
-Autonomous AI agents~\cite{Yao:ReAct23} extend LLMs with the ability to
-invoke external tools, query databases, and orchestrate sub-agents.
-The Model Context Protocol (MCP)~\cite{MCP:Anthropic24} has emerged as the
-de facto standard for connecting LLMs to tool servers, but its design
-grants each server broad, undifferentiated access to agent context.
+In DP, statistical noise is added to the results of data analyses to achieve
+varying degrees of privacy protection, with more noise providing greater privacy
+but reduced accuracy, and vice versa.
 %
-\emph{Prompt injection}---where adversarial content embedded in
-tool responses hijacks the agent's future actions~\cite{Perez:PromptInject22}---is
-the dominant attack class.
-Recent work has catalogued principled design patterns that mitigate
-specific injection scenarios~\cite{BeurerKellner:Patterns25}, but these
-patterns are specified informally and provide no machine-checkable guarantees.
-FIDES~\cite{Costa:FIDES25} proposes an IFC-inspired trust model for agents,
-yet it remains at the design-pattern level and lacks a formal semantics or
-mechanized proofs.
-Existing defences thus share the same fundamental limitation: they are
-probabilistic, ad~hoc, and offer no end-to-end security guarantees.
+Successfully deploying differentially private analyses imposes the challenging
+task of \emph{finding a balance between their privacy and accuracy trade-offs}.
+%
+Estimating the overall accuracy of a differentially private analysis is
+non-trivial, as it depends on both the specific task and the chosen notion of
+accuracy.
+%
+It is then not surprising that existing programming frameworks for developing
+differentially private analyses often have limited support for exploring
+accuracy (e.g., \citep{Apex,DBLP:journals/corr/GaboardiHKNUV16}), \emph{if any
+  at all} (e.g., \citep{PINQ09,ZhangMKHMM18,JohnsonNS18}).
+%
+The PI has developed principled solutions to provide accuracy guarantees
+for composite queries~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}.
+%
+To the best of our knowledge, no prior work connects LLM agent pipelines to
+differentially private workflows, leaving AI-driven data analysis without
+formal privacy guarantees.
 
-\paragraph{Differential Privacy.}
-Differential Privacy (DP)~\cite{Dwork:2006} provides the strongest
-compositional privacy guarantee for data releases: an output's distribution
-is nearly indistinguishable whether or not any individual's record is
-included.
-Type-based enforcement of DP began with linear-type sensitivity
-analysis~\cite{ReedP10,GaboardiHHNP13} and matured through systems such as
-PINQ~\cite{PINQ09} and Duet~\cite{DBLP:journals/pacmpl/NearDASGWSZSSS19}.
-The DPella framework~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21} introduced
-accuracy concentration bounds as first-class types, enabling
-privacy-accuracy trade-off reasoning at compile time.
-Sensitivity by parametricity~\cite{LoboVesga:OOPSLA24} showed that global
-sensitivity---the core quantity required to calibrate noise---can be derived
-automatically from parametric types, removing a key manual burden.
-No prior work has connected LLM agent pipelines with differentially private
-query languages, leaving AI-driven data analysis without formal privacy guarantees.
-
-\paragraph{Arrow-based DSLs.}
-Arrows~\cite{hughes:generalising-monads-arrows} generalise monads to
-computation graphs in which data flow is explicit and statically checkable.
-Their type discipline enforces that computations cannot inspect intermediate
-values unless explicitly plumbed through the type, making them well-suited
-for policy enforcement on data-dependent pipelines.
-Prior work by the PI used Arrow types to enforce multi-threaded IFC in
-Haskell~\cite{Tsai:Russo:Hughes:CSF07}, demonstrating the expressiveness of
-the formalism for security-aware computation graphs.
-Applying Arrows to AI planning DSLs---where the computation graph is
-constructed dynamically by an LLM---is unexplored territory.
+\paragraph{Control-flow integrity}
+Control-Flow Integrity (CFI) was introduced by Abadi et
+al.~\cite{Abadi:CFI:CCS05} as a principled defence against code-reuse
+attacks: by pre-computing a valid call graph and enforcing at runtime that
+every indirect branch follows an allowed edge, CFI prevents attackers from
+redirecting execution to arbitrary locations.
+%
+Solutions span the spectrum from hardware mechanisms (e.g., Intel
+Control-flow Enforcement Technology and shadow stacks) to compiler
+instrumentation and OS-level enforcement, and CFI is now a standard
+hardening primitive in systems software.
+%
+These techniques, however, target \emph{machine-level} control flow and
+reason about binary code.
+%
+AI agents face an analogous but higher-level challenge: an agent's
+\emph{plan}---the sequence of tool calls and decisions---can be hijacked by
+prompt injection just as binary control flow can be hijacked by
+return-oriented programming, yet existing CFI tools operate at the wrong
+abstraction level to address this threat.
+%
+In this proposal we take a \emph{language-based} approach: encoding agent
+plans as typed Arrow-based computation
+graphs~\cite{hughes:generalising-monads-arrows} fixes the graph topology at
+construction time, preventing injected content from introducing new
+edges---a semantic CFI for AI agents, building on the PI's prior work on
+Arrow-based IFC~\cite{Tsai:Russo:Hughes:CSF07}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Significance and scientific novelty}
