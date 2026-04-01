@@ -1,3 +1,6 @@
+# Zone identifier files (Windows)
+*:Zone.Identifier
+
 # Generated files
 *.aux
 *.bbl
