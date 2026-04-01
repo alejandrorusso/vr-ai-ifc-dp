@@ -192,15 +192,13 @@ specific injection scenarios; and benchmarks~\cite{Liu:FormalizingPI:24,Debenede
 have systematically formalised and catalogued how all these defences are
 routinely bypassed.
 %
-None of these approaches provide no end-to-end, formally verifiable security
-guarantees.
+None of these approaches provide no end-to-end security guarantees.
 
 
 \paragraph{Information Flow Control}
-IFC enforces policies like \emph{noninterference}~\cite{Goguen82}---the formal guarantee
-that secret inputs cannot influence public outputs.
+IFC enforces policies like \emph{noninterference}~\cite{Goguen82}---i.e., secret inputs cannot influence public outputs.
 %
-It can be provided at two levels of granularity.
+IFC can be provided at two levels of granularity.
 %
 At the \emph{OS level}~\cite{BellLaPadula:73,Efstathopoulos:2005,Zeldovich:2006}, a single label is assigned to each process, offering a coarse-grained but
 deployment-friendly enforcement model.
@@ -208,7 +206,7 @@ deployment-friendly enforcement model.
 At the \emph{programming language level}, each variable carries its own label, enabling
 fine-grained tracking; representative compilers and interpreters include
 Jif~\cite{jif} (Java), FlowCaml~\cite{FlowCaml} (Ocaml),
-Paragon~\cite{conf/aplas/BrobergDS13}(Java), and JSFlow~\cite{JSFlow}(Javascript).
+Paragon~\cite{conf/aplas/BrobergDS13} (Java), and JSFlow~\cite{JSFlow} (Javascript).
 %
 The PI has developed a family of libraries that enforce IFC through a
 typed API---if programs are written against the library interface, IFC is
@@ -217,18 +215,17 @@ enforced by construction~\cite{Russo+:Haskell08,Russo:2015,DBLP:conf/ccs/Algehed
 Among these, LIO~\cite{stefan:lio,stefan:addressing-covert,Stefan:LIO:JFP16}
 brings OS-level floating-label IFC into a language-level setting---a
 combination the PI formally proved to be equally expressive as fine-grained
-language-level IFC~\cite{VassenaRGRS19}---and received the
-\emph{Most Influential Paper} award~\cite{stefan:addressing-covert} at ACM SIGPLAN ICFP.
+language-level IFC~\cite{VassenaRGRS19}. 
 %
 None of these systems targets AI agents.
 %
-The sole exception is (unpublished) FIDES work~\cite{Costa:FIDES25}, which
+The sole exception is (the unpublished) FIDES work~\cite{Costa:FIDES25}, which
 applies IFC to AI agent planners with a formal model and deterministic policy
 enforcement.
 %
 However, FIDES targets a custom agent loop abstraction rather than MCP, and
-its primary focus is \emph{integrity}---preventing prompt injection from
-hijacking tool calls---while user data \emph{confidentiality} and the
+its primary focus is \emph{integrity}, i.e., preventing prompt injection from
+hijacking tool calls, while user data \emph{confidentiality} and the
 label-creep problem is not the main focus of the work. 
 
 
@@ -258,7 +255,7 @@ for composite queries~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}.
 %
 To the best of our knowledge, no prior work connects LLM agent pipelines to
 differentially private workflows, leaving AI-driven data analysis without
-formal privacy guarantees.
+privacy guarantees.
 
 \paragraph{Control-flow integrity}
 Control-Flow Integrity (CFI) was introduced by Abadi et
@@ -267,9 +264,10 @@ attacks: by pre-computing a valid call graph and enforcing at runtime that
 every indirect branch follows an allowed edge, CFI prevents attackers from
 redirecting execution to arbitrary locations.
 %
-Solutions span the spectrum from hardware mechanisms (e.g., Intel
-Control-flow Enforcement Technology and shadow stacks) to compiler
-instrumentation and OS-level enforcement, and CFI is now a standard
+Solutions span the spectrum from hardware mechanisms such as Intel
+Control-Flow Enforcement Technology~\cite{Intel:CET:2020} and shadow
+stacks, to compiler instrumentation~\cite{Tice:CompilerCFI:USENIX14} and
+OS-level enforcement~\cite{Burow:CFI:CSUR17}, and CFI is now a standard
 hardening primitive in systems software.
 %
 These techniques, however, target \emph{machine-level} control flow and
