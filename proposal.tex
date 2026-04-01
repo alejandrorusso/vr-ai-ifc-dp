@@ -81,7 +81,7 @@ web pages directly into the LLM's context without distinguishing \emph{data}
 %
 This characteristic enables \emph{prompt injection}
 attacks~\cite{Perez:PromptInject22,BeurerKellner:Patterns25,Debenedetti:AgentDojo24,Zhao:ParasiticMCP26}:
-adversarially crafted content embedded in tool responses hijacks the agent's
+adversarially crafted content embedded in tool responses that hijacks the agent's
 plan, causing it to exfiltrate secrets, forge actions, or serve a malicious
 third party.
 %
@@ -98,7 +98,7 @@ probabilistic and ad-hoc with lack of security guarantees.
 \end{figure}
 
 This proposal introduces a secure, trustworthy AI framework grounded in two
-formally verified security technologies: (i)~\emph{Information Flow Control}
+security technologies: (i)~\emph{Information Flow Control}
 (IFC)~\cite{BellLaPadula:73,Sabelfeld:Myers:JSAC}, which enforces end-to-end
 confidentiality and integrity by tracking how information moves through a
 system, and (ii)~\emph{Differential Privacy} (DP)~\cite{Dwork:2006}, which
@@ -109,12 +109,14 @@ safely interact with data and MCP tools while, \emph{by construction},
 confining information, mitigating prompt injection, and safely delivering
 privacy-protected insights from sensitive data.
 %
-The proposal aims to address three challenges of increasing security strength (see Figure \ref{fig:framework}):
+The proposal aims to address three challenges (see Figure \ref{fig:framework}):
 
 \paragraph{Challenge 1: Control-flow integrity}
-The first challenge is that AI planning is inherently data-dependent: agents
-branch, loop, and call tools based on LLM outputs, opening the door to
-prompt-injection-induced control-flow hijacking.
+The first challenge is that AI planning---the process by which an agent
+decides, step by step, which tools to call and in what order to complete a
+task---is inherently data-dependent: agents branch, loop, and call tools
+based on LLM outputs, opening the door to prompt-injection-induced
+control-flow hijacking.
 %
 \emph{Can we design a planning language where control flow is not affected by
 prompt injection attacks?}
