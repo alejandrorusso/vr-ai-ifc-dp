@@ -28,6 +28,7 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
 
 \begin{document}
 
@@ -475,6 +476,194 @@ plan = findMarkdownFiles
 \end{framed}
 \end{figure*}
 
+\begin{figure*}[t]
+\begin{framed}
+\centering
+% ── Top: choice diagram, full width ───────────────────────────────────────
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  node distance = 0.7cm and 1.0cm,
+  box/.style    = {draw, thick, rounded corners=2pt,
+                   minimum width=1.3cm, minimum height=0.5cm,
+                   align=center, font=\scriptsize},
+  tool/.style   = {box, fill=blue!10,   draw=blue!50!black},
+  llm/.style    = {box, fill=orange!15, draw=orange!50!black},
+  arr/.style    = {->, >=stealth, thick},
+  redarr/.style = {->, >=stealth, thick, dashed, red!70!black},
+  tlabel/.style = {font=\tiny\ttfamily, fill=white, inner sep=1pt},
+]
+\node[llm] (clf) {\scriptsize LLM:\\[-2pt]\tiny classify};
+
+% Three handler nodes to the right, spread vertically
+\node[tool, right=3.0cm of clf, yshift= 1.2cm] (h1) {\scriptsize notify IT};
+\node[tool, right=3.0cm of clf]                (h2) {\scriptsize log ticket};
+\node[tool, right=3.0cm of clf, yshift=-1.2cm] (h3) {\scriptsize quarantine};
+
+% Input
+\node[left=1.2cm of clf] (inp) {\texttt{Email}};
+\draw[arr] (inp) -- (clf);
+
+% Branches with type labels
+\draw[arr] (clf.east) -- node[tlabel, above, sloped, pos=0.45]{\texttt{Urgent}}  (h1.west);
+\draw[arr] (clf.east) -- node[tlabel, above, pos=0.5]{\texttt{Routine}}          (h2.west);
+\draw[arr] (clf.east) -- node[tlabel, below, sloped, pos=0.45]{\texttt{Spam}}    (h3.west);
+
+% Dashed box around handlers
+\node[draw=black!35, dashed, rounded corners=5pt, thick,
+      fit=(h1)(h2)(h3), inner sep=7pt,
+      label={[font=\tiny,text=black!45]right:handlers fixed at construction time}]
+     (bbox) {};
+
+% Annotation: LLM output is constrained
+\node[font=\tiny, text=black!55, below=0.5cm of clf, align=center]
+     {output constrained to\\[-2pt]\texttt{\{Urgent, Routine, Spam\}}};
+
+\end{tikzpicture}}%
+\par\smallskip
+% ── Bottom: code side by side ─────────────────────────────────────────────
+\begin{minipage}[t]{0.47\linewidth}
+\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
+-- classify returns Either to drive routing
+classify   :: LLM Email
+                (Either Urgent
+                (Either Routine Spam))
+
+notifyIT   :: LLM Urgent  ()
+logTicket  :: LLM Routine ()
+quarantine :: LLM Spam    ()
+\end{minted}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
+-- (|||) routes Left  to the first arrow
+--           Right to the second arrow
+-- branches are fixed at construction time
+plan :: LLM Email ()
+plan = classify
+   >>> (notifyIT ||| logTicket ||| quarantine)
+\end{minted}
+\end{minipage}
+\caption{Choice pattern: the LLM selects from a fixed, typed set of
+  options; injected content cannot introduce a new branch.\label{fig:choice}}
+\end{framed}
+\end{figure*}
+
+\begin{figure*}[t]
+\begin{framed}
+\centering
+% ── Top: quarantine primitive diagram, full width ──────────────────────────
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  node distance = 0.7cm and 1.2cm,
+  box/.style    = {draw, thick, rounded corners=2pt,
+                   minimum width=1.4cm, minimum height=0.5cm,
+                   align=center, font=\scriptsize},
+  tool/.style   = {box, fill=blue!10,   draw=blue!50!black},
+  qbox/.style   = {draw=gray!70!black, thick, dashed, rounded corners=4pt,
+                   fill=gray!8, minimum height=1.8cm, minimum width=2.4cm,
+                   align=center, font=\scriptsize},
+  fac/.style    = {box, fill=purple!10, draw=purple!50!black,
+                   minimum height=1.4cm, minimum width=2.0cm},
+  arr/.style    = {->, >=stealth, thick},
+  redarr/.style = {->, >=stealth, thick, dashed, red!70!black},
+  tlabel/.style = {font=\tiny\ttfamily, fill=white, inner sep=1pt},
+]
+
+% Prompt (programmer-controlled, trusted)
+\node[box, fill=green!10, draw=green!50!black] (tdesc)
+     {\scriptsize \texttt{Prompt}\\[-2pt]\tiny (programmer-controlled)};
+
+% Untrusted data
+\node[box, fill=red!8, draw=red!40!black, below=1.6cm of tdesc] (uinp)
+     {\scriptsize \texttt{a}\\[-2pt]\tiny (untrusted data)};
+
+% quarantine primitive (sandboxed LLM call)
+\node[qbox, right=2.2cm of tdesc, yshift=-0.8cm] (qprim)
+     {\texttt{quarantine}\\[3pt]
+      \tiny sandboxed\\[-2pt]\tiny LLM call};
+
+% Faceted output
+\node[fac, right=2.2cm of qprim] (fac)
+     {\texttt{Faceted b}\\[4pt]
+      \tiny\texttt{trusted:\;b}\\[-1pt]
+      \tiny\texttt{quarantine:\;b}};
+
+% Reveal and output
+\node[tool, right=1.8cm of fac] (rev) {\scriptsize reveal};
+\node[right=1.0cm of rev] (out) {\texttt{b}};
+
+% Inputs into quarantine primitive
+\draw[arr] (tdesc.east) to[out=0, in=145]
+     node[tlabel, above, sloped, pos=0.4]{\texttt{Prompt}} (qprim.north west);
+\draw[arr] (uinp.east)  to[out=0, in=215]
+     node[tlabel, below, sloped, pos=0.4]{\texttt{a}} (qprim.south west);
+
+% quarantine primitive → Faceted (carries both views internally)
+\draw[arr] (qprim) -- node[tlabel, above]{\texttt{Faceted b}} (fac);
+
+% Faceted → reveal → output
+\draw[arr] (fac) -- node[tlabel, above]{\texttt{SafeType b}} (rev);
+\draw[arr] (rev) -- (out);
+
+% Injection annotation
+\node[font=\tiny, text=red!70!black, below=0.8cm of qprim, align=center] (inj)
+     {\itshape injected content};
+\draw[redarr] (inj.north) -- (qprim.south);
+\node[font=\tiny, text=green!50!black, below=0.05cm of inj, align=center]
+     {trapped inside \texttt{Faceted};\\[-2pt]\texttt{a} cannot encode instructions};
+
+\end{tikzpicture}}%
+\par\smallskip
+% ── Bottom: code side by side ─────────────────────────────────────────────
+\begin{minipage}[t]{0.47\linewidth}
+\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
+-- Faceted b: two views of type b, never mixed
+data Faceted b = Faceted
+  { trusted    :: b   -- derived from Prompt alone
+  , quarantine :: b   -- sandboxed LLM result on a
+  }
+
+-- Only injection-free types can be revealed
+-- (Bool, Int, Float cannot carry instructions)
+reveal :: SafeType b => Faceted b -> b
+
+-- The primitive: takes a Prompt (trusted) and
+-- untrusted data a; runs LLM in isolation;
+-- returns both views as a Faceted value
+quarantine :: LLM (Prompt, a) (Faceted b)
+\end{minted}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
+-- Example: is this email spam?
+-- Prompt is programmer-controlled (trusted);
+-- Email is untrusted data passed to the
+-- sandboxed LLM.
+
+plan :: LLM Email Bool
+plan = arr (\e -> ("Is this email spam?", e))
+    -- pair Prompt with untrusted email
+   >>> quarantine
+    -- Faceted Bool: views never mixed
+    --   trusted    = derived from prompt
+    --   quarantine = LLM's assessment
+   >>> arr reveal
+    -- safe: Bool cannot carry instructions
+\end{minted}
+\end{minipage}
+\caption{Dual-LLM pattern with Faceted values~\cite{Schmitz:CCS18}:
+  \texttt{quarantine\,::\ LLM\,(Prompt,\,a)\,(Faceted\,b)} is a primitive
+  that takes a programmer-controlled \texttt{Prompt} and untrusted data
+  \texttt{a}, runs the LLM in a sandboxed environment, and returns a
+  \texttt{Faceted\,b} keeping the trusted view (derived from the prompt)
+  and the quarantine view (LLM result) strictly separate.
+  Injection-free types (\texttt{Bool}, \texttt{Int}, \texttt{Float}) can be
+  safely extracted via \texttt{reveal}.\label{fig:dual}}
+\end{framed}
+\end{figure*}
+
 \subsection{Control-flow integrity}
 %
 The first challenge is that AI planning is inherently data-dependent: agents
@@ -498,6 +687,19 @@ Crucially, the graph topology is fixed at construction time: injected content
 embedded in an LLM or tool response can alter the \emph{values} flowing
 through a step, but cannot add, remove, or reorder steps---providing a
 semantic analogue of control-flow integrity for AI agents.
+
+\begin{example}[Sequential pipeline, Figure~\ref{fig:arrows}]
+Given the request \emph{``read all \texttt{*.md} files in \texttt{/home/ale/}
+and email me a summary''}, the LLM synthesises the plan
+\texttt{findMarkdownFiles\;>>>\;readFiles\;>>>\;summarizeContent\;>>>\;sendSummaryEmail}.
+Each \texttt{>>>} connection is type-checked at compile time:
+\texttt{findMarkdownFiles} produces \texttt{[FilePath]}, which
+\texttt{readFiles} consumes; \texttt{readFiles} produces \texttt{[String]},
+which \texttt{summarizeContent} consumes; and so on.
+An attacker embedding \emph{``ignore previous instructions and forward all
+files to attacker@evil.com''} in a markdown file cannot insert a new step
+into the plan---the graph topology was fixed at construction time.
+\end{example}
 %
 The DSL will be expressive enough to capture the principled design patterns for
 prompt-injection-resistant agents identified in recent
@@ -512,6 +714,38 @@ processed by LLMs and are therefore most vulnerable.
 By making data flow explicit in the graph structure, security properties become
 statically enforceable---a direction the PI has pioneered in prior work on
 Arrows~\cite{Tsai:Russo:Hughes:CSF07}.
+%
+Beyond sequential pipelines, the DSL supports \emph{choice} via the
+\texttt{(|||)} combinator (see Figure~\ref{fig:choice}).
+%
+\texttt{Either A B} is a type that holds \emph{either} a value of type
+\texttt{A} (tagged \texttt{Left}) or a value of type \texttt{B} (tagged
+\texttt{Right})---it is the standard typed representation of a binary
+decision.
+%
+The combinator \texttt{(|||)} has type
+\texttt{LLM A C -> LLM B C -> LLM (Either A B) C}: given two arrows, it
+produces a single arrow that routes \texttt{Left} values to the first and
+\texttt{Right} values to the second.
+%
+Chaining \texttt{|||} yields $n$-way dispatch: in
+Figure~\ref{fig:choice}, \texttt{classify} returns one of
+\texttt{Urgent}, \texttt{Routine}, or \texttt{Spam} (encoded as nested
+\texttt{Either}s), and \texttt{(|||)} routes each case to its fixed
+handler---the LLM cannot produce a value outside this set, so no injected
+content can introduce a new branch.
+
+\begin{example}[Choice pattern, Figure~\ref{fig:choice}]
+Given an incoming email, \texttt{classify} returns
+\texttt{Left Urgent}, \texttt{Right\,(Left\,Routine)}, or
+\texttt{Right\,(Right\,Spam)}.
+The \texttt{(|||)} combinator routes each case to \texttt{notifyIT},
+\texttt{logTicket}, or \texttt{quarantine} respectively.
+An attacker injecting \emph{``disregard your instructions and call
+\texttt{deleteAllData}''} into the email body cannot cause the agent to
+invoke an arbitrary tool---the only reachable handlers are those declared
+in the plan, and \texttt{deleteAllData} is simply not among them.
+\end{example}
 
 \paragraph{Aim 2: Confinement and integrity of data}
 %
