@@ -292,100 +292,109 @@ Arrow-based IFC~\cite{Tsai:Russo:Hughes:CSF07}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 This project opens a new research direction at the intersection of
-programming-language security and AI systems.
+programming-language security, data privacy, OS security, and AI systems.
+%
 Its significance rests on three interlocking novelties.
 
-\paragraph{Typed planning DSLs for AI agents.}
-Existing AI planning frameworks (LangChain, AutoGPT, MCP) are dynamically
-typed and unverified.
-We introduce the first Arrow-based planning DSL that (i)~is expressive enough
-to encode all prompt-injection-resistant design patterns from the
-literature~\cite{BeurerKellner:Patterns25} and (ii)~uses type errors as a
-two-sided feedback signal: they statically reject injected plan transitions
-\emph{and} guide the LLM's plan synthesis towards correct,
-security-respecting plans.
-The dual use of the type system---as both a security enforcer and an
-AI feedback loop---is conceptually novel and has not been explored in either
-the PL or AI communities.
+\paragraph{Typed planning DSLs for AI agents}
+Existing AI planning frameworks (e.g., LangChain and n8n) are dynamically typed
+and unverified.
+%
+We introduce the first Arrow-based planning domain-specific language (DSL) that (i)~is expressive enough
+to encode all prompt-injection-resistant design patterns from~\cite{BeurerKellner:Patterns25} and (ii)~uses type errors as a
+two-sided feedback signal: they statically reject wrongly crafted plan transitions
+\emph{and} guide the LLM's plan synthesis towards correct, security-respecting
+plans.
+%
 
-\paragraph{LIO for AI agent pipelines.}
-While LIO has been applied to web applications and concurrent programs, this
-is the first adaptation to AI agents and MCP tool servers.
-The technical challenge is substantial: tool calls introduce asynchronous,
-multi-party information flows that require new label-propagation rules.
-We will provide a formal semantics, prove noninterference for the resulting
-system, and encode the FIDES trust model~\cite{Costa:FIDES25} as a derived
-instance, giving that informal model its first formal foundation.
-The eBPF layer adds an orthogonal novelty: it demonstrates that kernel-level
-BPF programs can enforce floating-label IFC without modifying user-space
-MCP servers, which is the first such result.
+\paragraph{LIO for AI agent pipelines}
+While LIO concepts has been applied to web applications and concurrent
+programs, this is the first adaptation to AI agents and MCP tool servers. 
+%
+Tool calls introduce asynchronous, multi-party information flows that require
+new label-propagation rules. 
+%
+We will provide a formal semantics, and prove security gurantess (e.g., noninterference) for the resulting
+system. 
+%
+The eBPF layer adds an orthogonal novelty.
+%
+Existing IFC systems require instrumentation of the application or its language
+runtime, making them inapplicable to third-party MCP servers whose source cannot
+be modified.
+%
+eBPF~\cite{Vieira:eBPF20}---a Linux kernel mechanism that allows sandboxed
+programs to intercept system calls and network events without touching user
+space---offers a deployment path that sidesteps this barrier.
+%
+We show that kernel-level eBPF programs can enforce floating-label IFC for
+unmodified MCP servers, which is, to the best of our knowledge, the first such
+result.
 
-\paragraph{Differential Privacy as a declassification primitive.}
-The key insight driving Goal~3 is the observation that DP releases are
-\emph{structured declassifications}: they lower an information label precisely
-when a calibrated privacy budget is consumed.
+\paragraph{Differential Privacy as a declassification primitive}
 Making DP the sole declassification primitive of an IFC system---instead of
-relying on ad~hoc declassification policies---is a principled solution to
-label creep that has not appeared in prior IFC or DP literature.
+relying on ad~hoc declassification policies---is a principled solution to label
+creep that has not appeared in prior IFC literature (except for~\cite{capsule2019}). 
+%
 Combined with the DPella-inspired DSL~\cite{LoboVesga:SP20,LoboVesga:OOPSLA24},
-this establishes end-to-end formal security: agents can derive statistical
-insights without their labels ever being raised to the sensitivity of raw data.
+this establishes end-to-end guarantees that agents can derive statistical
+insights without their labels being raised to the sensitivity of raw data.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Preliminary and previous results}
 \label{sec:preliminary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The PI has a 20-year track record across all three technical pillars of this
-proposal, providing strong preliminary evidence that the goals are achievable.
-
-\paragraph{IFC: LIO and its derivatives.}
-The PI co-designed LIO~\cite{stefan:lio}, the floating-label IFC monad that
-underpins Goal~2.
-Subsequent work extended LIO to concurrent programs~\cite{stefan:addressing-covert}
-(ICFP~2012; awarded the \textbf{most influential paper} in 2022)
-and to the web platform via COWL~\cite{COWL} (OSDI~2014), demonstrating
-practical large-scale deployment.
-Hails~\cite{giffin:hails} (OSDI~2012) showed that LIO-style mandatory access
-control can protect untrusted web applications---a blueprint for confining
-untrusted MCP tool servers in this proposal.
-DC-labels~\cite{Stefan:2011} provide the policy lattice used in Goal~2.
-The PI's theoretical work on dynamic IFC~\cite{VassenaRGRS19} (POPL~2019,
-\textbf{distinguished paper}) delivers the formal framework---fine-to-coarse
-label translation---that will underpin the noninterference proofs in~Goal~2.
-
-\paragraph{DP: DPella and sensitivity analysis.}
-The PI co-developed DPella~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}, a
-programming framework with accuracy concentration bounds that directly
-informs the DP query DSL in Goal~3.
-Sensitivity by parametricity~\cite{LoboVesga:OOPSLA24} (OOPSLA~2024)
-automates the derivation of global sensitivity, removing the principal
-manual burden in constructing correct DP mechanisms---a capability essential
-for generating DP queries in AI pipelines.
-The most recent result, on accuracy for differentially private quotients
-via fractional uncertainties~\cite{Russo:CCS25} (CCS~2025), advances the
-state of the art in accuracy-aware DP, ensuring that AI-derived statistical
-insights are not only private but also trustworthy.
-
-\paragraph{Arrow-based IFC.}
-The PI's earliest IFC result~\cite{Tsai:Russo:Hughes:CSF07} (CSF~2007)
-used Arrow types to enforce multi-threaded information flow in Haskell,
+The PI has a track record across the technical pillars of this proposal.
+%
+The PI's earliest IFC result~\cite{Tsai:Russo:Hughes:CSF07} 
+used Arrow types to enforce IFC in Haskell,
 establishing the technical foundation for the strongly-typed planning DSL in
-Goal~1.
-The HasTEE system~\cite{Sarkar:HasTEE23} (Haskell~2023) shows the PI's
-continued interest in using Haskell's type system to enforce security
-properties at scale.
-
-\paragraph{AI security.}
-The PI has recently begun investigating the intersection of security and AI.
-The faceted multi-execution work~\cite{Schmitz:CCS18} (CCS~2018) provides
-a dual-LLM isolation primitive applicable to the separation of trusted plans
-from untrusted tool outputs, as suggested by the dual-LLM design
-pattern~\cite{BeurerKellner:Patterns25}.
-
+Challenge~1.
+%
+The PI co-designed
+LIO~\cite{stefan:lio}, the floating-label IFC framework that underpins
+Challenge~2.
+%
+Subsequent work extended LIO to concurrent
+programs~\cite{stefan:addressing-covert} (ICFP~2012; awarded the \textbf{most
+influential paper} in 2022), and to the web platform via
+Hails~\cite{giffin:hails} (OSDI 2012) and COWL~\cite{COWL} (OSDI~2014),
+demonstrating practical deployment.
+%
+DC-labels~\cite{Stefan:2011} will provide the foundational policy formalism
+used in Challenge~2.
+%
+The PI co-developed
+DPella~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}, a programming framework for
+writing differentially private queries which informs the DSL in Challenge~3.
+%
+The most recent result, on accuracy for differentially private
+quotients~\cite{Russo:CCS25}, advances the state of the art in accuracy-aware
+DP queries, ensuring that AI-derived statistical insights are not only private
+but also useful.
+%
+% \paragraph{Preliminary results} The PI has already produced concrete
+% artefacts for all three challenges. % For Challenge~1, a Haskell prototype
+% (\texttt{arrow-ai}) implements an Arrow-based planning DSL in which agent
+% plans are typed computation graphs composed with the \texttt{>>>} combinator;
+% tool invocations are drawn from a GADT of commands, so injected content
+% cannot introduce plan transitions that were not present at construction time.
+% % For Challenge~2, \texttt{mcp-ifc} provides a Volpano-Smith-style type
+% system for AI agent programs: types carry security labels, the program
+% counter tracks implicit flows, and LLM calls are distinguished from MCP tool
+% calls by distinct typing rules. % A key novelty is the \emph{Shield String}
+% type: tool and LLM outputs are opaque by default and can only be passed to
+% further tools or sanitised before consumption, blocking prompt injection at
+% the type level. % For the eBPF deployment strategy, \texttt{ai-labels} is a
+% working BPF-LSM prototype that attaches to \texttt{file\_open} and
+% \texttt{file\_permission} kernel hooks to enforce monotone label joins on
+% reads and write-blocking when the process label exceeds the target file's
+% label---without touching user-space MCP servers; the test suite passes 11/11
+% cases on a QEMU Linux VM.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Project description}
-\label{sec:description}
+\section{Project description} \label{sec:description}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%% TO KEEP
@@ -486,7 +495,7 @@ We will formalise an Arrow-based DSL for AI agent planning.
 sequential composition, conditionals, loops, and tool invocations, together
 with a type system that encodes data provenance.
 \emph{Task~1.2} encodes the prompt-injection-resistant design patterns from
-the literature~\cite{BeurerKellner:Patterns25} as typed DSL schemas, and proves
+~\cite{BeurerKellner:Patterns25} as typed DSL schemas, and proves
 that ill-typed plans cannot arise from prompt injection.
 \emph{Task~1.3} implements a prototype in Haskell, integrates it with a
 live MCP client, and evaluates how type errors guide LLM plan synthesis.
