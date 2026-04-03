@@ -22,7 +22,7 @@
 \usepackage{tikz}
 \usepackage{minted}
 \pgfplotsset{scaled y ticks=false, scaled x ticks=false, compat=1.5}
-\usetikzlibrary{shapes,arrows,positioning,calc,decorations.pathmorphing}
+\usetikzlibrary{shapes,arrows,positioning,calc,decorations.pathmorphing,fit}
 
 \input{notation}
 
@@ -393,26 +393,90 @@ but also useful.
 % label---without touching user-space MCP servers; the test suite passes 11/11
 % cases on a QEMU Linux VM.
 %
+
+
+\newpage 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Project description} \label{sec:description}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%% TO KEEP
 
-\paragraph{Aim 1: Control-flow integrity}
+\begin{figure*}[t]
+\begin{framed}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  node distance = 1.1cm and 1.6cm,
+  box/.style    = {draw, thick, rounded corners=3pt,
+                   minimum width=1.75cm, minimum height=0.65cm,
+                   align=center, font=\small},
+  tool/.style   = {box, fill=blue!10,   draw=blue!50!black},
+  llm/.style    = {box, fill=orange!15, draw=orange!50!black},
+  arr/.style    = {->, >=stealth, thick},
+  redarr/.style = {->, >=stealth, thick, dashed, red!70!black},
+  tlabel/.style = {font=\scriptsize\ttfamily, midway, above=2pt,
+                   fill=white, inner sep=1pt},
+]
+
+%% ── Arrow plan ────────────────────────────────────────────────────────────
+\node[tool]                    (s1) {\footnotesize find\,*.md};
+\node[tool, right=1.3cm of s1] (s2) {\footnotesize read\,files};
+\node[llm,  right=1.3cm of s2] (s3) {\footnotesize LLM:\\[-3pt]
+                                      \scriptsize summarise};
+\node[tool, right=1.3cm of s3] (s4) {\footnotesize send\,email};
+
+\node[left=0.45cm of s1]  (in_b)  {\texttt{()}};
+\node[right=0.45cm of s4] (out_b) {\texttt{()}};
+
+\draw[arr] (in_b) -- (s1);
+\draw[arr] (s1)   -- node[tlabel]{\texttt{[File]}} (s2);
+\draw[arr] (s2)   -- node[tlabel]{\texttt{[Str]}}  (s3);
+\draw[arr] (s3)   -- node[tlabel]{\texttt{Str}}    (s4);
+\draw[arr] (s4)   -- (out_b);
+
+\node[draw=black!35, dashed, rounded corners=5pt, thick,
+      fit=(s1)(s2)(s3)(s4), inner sep=7pt,
+      label={[font=\scriptsize,text=black!45]below:%
+             graph topology fixed at construction time}]
+     (bbox) {};
+
+\node[font=\scriptsize, text=red!70!black,
+      below=1.0cm of s3, align=center] (injB)
+     {\itshape injected\\[-2pt]\itshape content};
+\draw[redarr] (injB.north) -- (s3.south);
+\node[font=\scriptsize, text=green!50!black,
+      below=0.1cm of injB, align=center]
+     {values may change;\\[-2pt]edges cannot~($\times$)};
+
+\end{tikzpicture}}%
+\caption{Arrow-based planning DSL.\label{fig:arrows}}
+\end{framed}
+\end{figure*}
+
+\subsection{Control-flow integrity}
+%
 The first challenge is that AI planning is inherently data-dependent: agents
 branch, loop, and call tools based on LLM outputs, opening the door to
 prompt-injection-induced control-flow hijacking.
 %
 We will design a strongly-typed, Arrow-based~\cite{hughes:generalising-monads-arrows}
 domain-specific language (DSL) that encodes agent plans as typed computation
-graphs.
+graphs (see Figure~\ref{fig:arrows}).
 %
 Arrows are a functional abstraction for \emph{data-flow graphs}---the same
 computational model underlying automation tools such as n8n and
-LangGraph\footnote{\tiny \url{https://n8n.io} (n8n) \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---where nodes represent computations and edges data
-between them; crucially, the graph topology is fixed at construction time,
-making control flow statically inspectable and amenable to formal analysis.
+LangGraph\footnote{\tiny \url{https://n8n.io} (n8n) \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---where nodes represent computations and edges carry data
+between them.
+%
+Each step is typed: for example, \texttt{find\,*.md} produces a list of file
+paths \texttt{[File]}, \texttt{read\,files} consumes that list and produces
+\texttt{[Str]}, and so on; mismatched types are rejected at compile time.
+%
+Crucially, the graph topology is fixed at construction time: injected content
+embedded in an LLM or tool response can alter the \emph{values} flowing
+through a step, but cannot add, remove, or reorder steps---providing a
+semantic analogue of control-flow integrity for AI agents.
 %
 The DSL will be expressive enough to capture the principled design patterns for
 prompt-injection-resistant agents identified in recent
@@ -426,7 +490,7 @@ processed by LLMs and are therefore most vulnerable.
 %
 By making data flow explicit in the graph structure, security properties become
 statically enforceable---a direction the PI has pioneered in prior work on
-Arrows~\cite{Tsai:Russo:Hughes:CSF07}. 
+Arrows~\cite{Tsai:Russo:Hughes:CSF07}.
 
 \paragraph{Aim 2: Confinement and integrity of data}
 %
