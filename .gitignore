@@ -11,3 +11,4 @@
 *.out
 *.pdf
 *.ptb
+_minted*/
