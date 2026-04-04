@@ -484,12 +484,12 @@ plan = findMarkdownFiles
 \begin{framed}
 \centering
 % ── Top: choice diagram, full width ───────────────────────────────────────
-\resizebox{\linewidth}{!}{%
+\resizebox{0.80\linewidth}{!}{%
 \begin{tikzpicture}[
-  node distance = 0.7cm and 1.0cm,
+  node distance = 0.5cm and 0.8cm,
   box/.style    = {draw, thick, rounded corners=2pt,
-                   minimum width=1.3cm, minimum height=0.5cm,
-                   align=center, font=\scriptsize},
+                   minimum width=1.3cm, minimum height=0.4cm,
+                   inner sep=2pt, align=center, font=\scriptsize},
   tool/.style   = {box, fill=blue!10,   draw=blue!50!black},
   llm/.style    = {box, fill=orange!15, draw=orange!50!black},
   arr/.style    = {->, >=stealth, thick},
@@ -499,9 +499,9 @@ plan = findMarkdownFiles
 \node[llm] (clf) {\scriptsize LLM:\\[-2pt]\tiny classify};
 
 % Three handler nodes to the right, spread vertically
-\node[tool, right=3.0cm of clf, yshift= 0.7cm] (h1) {\scriptsize notify IT};
+\node[tool, right=3.0cm of clf, yshift= 0.6cm] (h1) {\scriptsize notify IT};
 \node[tool, right=3.0cm of clf]                (h2) {\scriptsize log ticket};
-\node[tool, right=3.0cm of clf, yshift=-0.7cm] (h3) {\scriptsize quarantine};
+\node[tool, right=3.0cm of clf, yshift=-0.6cm] (h3) {\scriptsize quarantine};
 
 % Input
 \node[left=1.2cm of clf] (inp) {\scriptsize\texttt{Email}};
@@ -515,11 +515,11 @@ plan = findMarkdownFiles
 % Dashed box around handlers
 \node[draw=black!35, dashed, rounded corners=5pt, thick,
       fit=(h1)(h2)(h3), inner sep=7pt,
-      label={[font=\tiny,text=black!45]right:handlers fixed at construction time}]
+      label={[font=\scriptsize,text=black!45]right:handlers fixed at construction time}]
      (bbox) {};
 
 % Annotation: LLM output is constrained
-\node[font=\tiny, text=black!55, below=0.5cm of clf, align=center]
+\node[font=\scriptsize, text=black!55, below=0.5cm of clf, align=center]
      {output constrained to\\[-2pt]\texttt{\{Urgent, Routine, Spam\}}};
 
 \end{tikzpicture}}%
@@ -557,16 +557,16 @@ plan = classify
 % ── Top: quarantine primitive diagram, full width ──────────────────────────
 \resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
-  node distance = 0.7cm and 1.2cm,
+  node distance = 0.5cm and 1.2cm,
   box/.style    = {draw, thick, rounded corners=2pt,
-                   minimum width=1.4cm, minimum height=0.5cm,
-                   align=center, font=\scriptsize},
+                   minimum width=1.4cm, minimum height=0.4cm,
+                   inner sep=2pt, align=center, font=\scriptsize},
   tool/.style   = {box, fill=blue!10,   draw=blue!50!black},
   qbox/.style   = {draw=gray!70!black, thick, dashed, rounded corners=4pt,
-                   fill=gray!8, minimum height=1.8cm, minimum width=2.4cm,
-                   align=center, font=\scriptsize},
+                   fill=gray!8, minimum height=1.2cm, minimum width=2.4cm,
+                   inner sep=2pt, align=center, font=\scriptsize},
   fac/.style    = {box, fill=purple!10, draw=purple!50!black,
-                   minimum height=1.4cm, minimum width=2.0cm},
+                   minimum height=1.0cm, minimum width=2.0cm},
   arr/.style    = {->, >=stealth, thick},
   redarr/.style = {->, >=stealth, thick, dashed, red!70!black},
   tlabel/.style = {font=\tiny\ttfamily, fill=white, inner sep=1pt},
@@ -576,20 +576,20 @@ plan = classify
 \node[box, fill=green!10, draw=green!50!black] (tdesc)
      {\scriptsize \texttt{Prompt}\\[-2pt]\tiny (programmer-controlled)};
 
-% Untrusted data
-\node[box, fill=red!8, draw=red!40!black, below=1.6cm of tdesc] (uinp)
-     {\scriptsize \texttt{a}\\[-2pt]\tiny (untrusted data)};
+% Input data (may be trusted or untrusted)
+\node[box, below=1.0cm of tdesc] (uinp)
+     {\scriptsize \texttt{a}\\[-2pt]\tiny (input data)};
 
 % quarantine primitive (sandboxed LLM call)
-\node[qbox, right=2.2cm of tdesc, yshift=-0.8cm] (qprim)
-     {\texttt{quarantine}\\[3pt]
+\node[qbox, right=2.2cm of tdesc, yshift=-0.5cm] (qprim)
+     {\texttt{quarantine}\\[2pt]
       \tiny sandboxed\\[-2pt]\tiny LLM call};
 
-% Faceted output
+% Untrusted output
 \node[fac, right=2.2cm of qprim] (fac)
-     {\texttt{Faceted b}\\[4pt]
-      \tiny\texttt{trusted:\;b}\\[-1pt]
-      \tiny\texttt{quarantine:\;b}};
+     {\texttt{Untrusted b}\\[2pt]
+      \tiny\texttt{content\,::\,b}\\[-1pt]
+      \tiny\texttt{description\,::\,String}};
 
 % Reveal and output
 \node[tool, right=1.8cm of fac] (rev) {\scriptsize reveal};
@@ -601,10 +601,10 @@ plan = classify
 \draw[arr] (uinp.east)  to[out=0, in=215]
      node[tlabel, below, sloped, pos=0.4]{\texttt{a}} (qprim.south west);
 
-% quarantine primitive → Faceted (carries both views internally)
-\draw[arr] (qprim) -- node[tlabel, above]{\texttt{Faceted b}} (fac);
+% quarantine primitive → Untrusted
+\draw[arr] (qprim) -- node[tlabel, above]{\texttt{Untrusted b}} (fac);
 
-% Faceted → reveal → output
+% Untrusted → reveal → output
 \draw[arr] (fac) -- node[tlabel, above]{\texttt{SafeType b}} (rev);
 \draw[arr] (rev) -- (out);
 
@@ -613,27 +613,23 @@ plan = classify
      {\itshape injected content};
 \draw[redarr] (inj.north) -- (qprim.south);
 \node[font=\tiny, text=green!50!black, below=0.05cm of inj, align=center]
-     {trapped inside \texttt{Faceted};\\[-2pt]\texttt{a} cannot encode instructions};
+     {trapped inside \texttt{content};\\[-2pt]\texttt{description} is trusted};
 
 \end{tikzpicture}}%
 \par\smallskip
 % ── Bottom: code side by side ─────────────────────────────────────────────
 \begin{minipage}[t]{0.47\linewidth}
 \begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
--- Faceted b: two views of type b, never mixed
-data Faceted b = Faceted
-  { trusted    :: b   -- derived from Prompt alone
-  , quarantine :: b   -- sandboxed LLM result on a
+data Untrusted a = Untrusted
+  { content     :: a       -- untrusted LLM result
+  , description :: String  -- trusted, from Prompt
   }
 
--- Only injection-free types can be revealed
--- (Bool, Int, Float cannot carry instructions)
-reveal :: SafeType b => Faceted b -> b
+-- Only injection-free types can be revealed 
+reveal :: SafeType b => Untrusted b -> b
 
--- The primitive: takes a Prompt (trusted) and
--- untrusted data a; runs LLM in isolation;
--- returns both views as a Faceted value
-quarantine :: LLM (Prompt, a) (Faceted b)
+-- runs LLM in isolation; returns Untrusted b
+quarantine :: LLM (Prompt, a) (Untrusted b)
 \end{minted}
 \end{minipage}%
 \hfill
@@ -646,23 +642,11 @@ quarantine :: LLM (Prompt, a) (Faceted b)
 
 plan :: LLM Email Bool
 plan = arr (\e -> ("Is this email spam?", e))
-    -- pair Prompt with untrusted email
    >>> quarantine
-    -- Faceted Bool: views never mixed
-    --   trusted    = derived from prompt
-    --   quarantine = LLM's assessment
    >>> arr reveal
-    -- safe: Bool cannot carry instructions
 \end{minted}
 \end{minipage}
-\caption{Dual-LLM pattern with Faceted values~\cite{Schmitz:CCS18}:
-  \texttt{quarantine\,::\ LLM\,(Prompt,\,a)\,(Faceted\,b)} is a primitive
-  that takes a programmer-controlled \texttt{Prompt} and untrusted data
-  \texttt{a}, runs the LLM in a sandboxed environment, and returns a
-  \texttt{Faceted\,b} keeping the trusted view (derived from the prompt)
-  and the quarantine view (LLM result) strictly separate.
-  Injection-free types (\texttt{Bool}, \texttt{Int}, \texttt{Float}) can be
-  safely extracted via \texttt{reveal}.\label{fig:dual}}
+\caption{Dual-LLM design pattern.\label{fig:dual}}
 \end{framed}
 \end{figure*}
 
@@ -779,6 +763,31 @@ The arrow \mintinline{haskell}{classify} returns \mintinline{haskell}{Left Urgen
 An attacker injecting \emph{``disregard your instructions and call
 \texttt{deleteAllData}''} into the email body cannot cause the agent to invoke
 an arbitrary tool---the only reachable handlers are those declared in the plan.
+%
+
+Beyond routing, the DSL can also supports the \emph{dual-LLM} design
+pattern~\cite{BeurerKellner:Patterns25}, illustrated in
+Figure~\ref{fig:dual}.
+%
+The idea, is to isolate
+the processing of potentially adversarial data inside a sandboxed
+\mintinline{haskell}{quarantine} primitive, which returns a value of type
+\mintinline{haskell}{Untrusted b}: the \mintinline{haskell}{content} field
+holds the (untrusted) LLM output, while \mintinline{haskell}{description}
+is a trusted summary derived solely from the programmer-controlled
+\mintinline{haskell}{Prompt}.
+%
+Crucially, \mintinline{haskell}{Untrusted a} values can only be consumed by
+the \mintinline{haskell}{quarantine} primitive---by construction, the planning
+LLM has no access to them, so injected content can never propagate into the
+trusted control flow.
+%
+Only injection-free types (such as \mintinline{haskell}{Bool},
+\mintinline{haskell}{Int}, or \mintinline{haskell}{Float}, which structurally
+cannot encode instructions) may be extracted via \mintinline{haskell}{reveal},
+following the recommendation in~\cite{BeurerKellner:Patterns25} to restrict
+the interface between the sandboxed and trusted components to safe,
+structured data.
 
 \clearpage 
 
