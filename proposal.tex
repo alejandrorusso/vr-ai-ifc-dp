@@ -944,3 +944,65 @@ The PI is the scientific leader and initiator of all three strands.
 \label{lastpage}
 
 \end{document}
+
+%% Notes 
+% ● The proof follows directly from the     
+%   fundamental difference between Arrows and   
+%   Monads, and it proceeds in two layers:      
+%
+%   ---                                         
+%   Layer 1: The key structural property of     
+%   Arrows                                      
+%
+%   In a monad, bind allows dynamic dispatch: 
+%   x >>= \result -> f result   -- f can use    
+%   result to pick the NEXT computation      
+%   This is exactly what prompt injection       
+%   exploits — the LLM's output selects the next
+%    step.                                      
+%
+%   In Arrows, >>> does not allow this:         
+%   f >>> g   -- g is fixed at construction     
+%   time; it does not depend on f's output  
+%   The combinator receives g as a value (a     
+%   fully-constructed arrow), not as a function
+%   of the runtime output of f. This is the     
+%   algebraic reason the graph topology is    
+%   static.                                     
+%
+%   ---                                
+%   Layer 2: The formal proof
+%
+%   You define a topology extraction function
+%   topo(P) that maps a plan expression to its  
+%   graph (set of nodes and edges), and prove:
+%
+%   Theorem (CFI): For any well-typed plan P and
+%    any two inputs v₁, v₂, the sequence of 
+%   steps executed satisfies topo(run(P, v₁)) = 
+%   topo(run(P, v₂)).                         
+%
+%   The proof is by structural induction on the
+%   plan expression:                           
+%
+%   - Base case arr f: a single node; f maps
+%   values but cannot add edges — topo is       
+%   constant.
+%   - f >>> g: the graph is topo(f) followed by 
+%   topo(g), connected at their boundary types. 
+%   By induction both sub-graphs are fixed;
+%   their sequential composition is also fixed. 
+%   - f ||| g: the graph is a fixed fork with 
+%   two branches; which branch executes at      
+%   runtime depends on the Either tag, but both
+%   branches are pre-built — no new branch can  
+%   appear.                                   
+%   - f &&& g: parallel composition; both
+%   sub-graphs are fixed by induction.          
+%
+%   At no inductive step does a runtime value   
+%   influence which node or edge is added to the
+%    graph. This closes the induction.          
+%
+%   ---                                
+%
