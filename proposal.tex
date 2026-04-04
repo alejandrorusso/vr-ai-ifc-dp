@@ -499,12 +499,12 @@ plan = findMarkdownFiles
 \node[llm] (clf) {\scriptsize LLM:\\[-2pt]\tiny classify};
 
 % Three handler nodes to the right, spread vertically
-\node[tool, right=3.0cm of clf, yshift= 1.2cm] (h1) {\scriptsize notify IT};
+\node[tool, right=3.0cm of clf, yshift= 0.7cm] (h1) {\scriptsize notify IT};
 \node[tool, right=3.0cm of clf]                (h2) {\scriptsize log ticket};
-\node[tool, right=3.0cm of clf, yshift=-1.2cm] (h3) {\scriptsize quarantine};
+\node[tool, right=3.0cm of clf, yshift=-0.7cm] (h3) {\scriptsize quarantine};
 
 % Input
-\node[left=1.2cm of clf] (inp) {\texttt{Email}};
+\node[left=1.2cm of clf] (inp) {\scriptsize\texttt{Email}};
 \draw[arr] (inp) -- (clf);
 
 % Branches with type labels
@@ -526,7 +526,7 @@ plan = findMarkdownFiles
 \par\smallskip
 % ── Bottom: code side by side ─────────────────────────────────────────────
 \begin{minipage}[t]{0.47\linewidth}
-\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
+\begin{minted}[fontsize=\scriptsize, baselinestretch=0.9]{haskell}
 -- classify returns Either to drive routing
 classify   :: LLM Email
                 (Either Urgent
@@ -540,16 +540,14 @@ quarantine :: LLM Spam    ()
 \hfill
 \begin{minipage}[t]{0.47\linewidth}
 \begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
--- (|||) routes Left  to the first arrow
---           Right to the second arrow
--- branches are fixed at construction time
+-- Branches are fixed at construction time
 plan :: LLM Email ()
 plan = classify
-   >>> (notifyIT ||| logTicket ||| quarantine)
+   >>> (notifyIT ||| (logTicket ||| quarantine))
 \end{minted}
 \end{minipage}
-\caption{Choice pattern: the LLM selects from a fixed, typed set of
-  options; injected content cannot introduce a new branch.\label{fig:choice}}
+\caption{LLM-as-classifier pattern: the LLM selects from a fixed, typed set of
+  options.\label{fig:choice}}
 \end{framed}
 \end{figure*}
 
@@ -757,25 +755,30 @@ In short, given two arrows, \mintinline{haskell}{(|||)} produces a single arrow 
 routes \mintinline{haskell}{Left} values to the first and
 \texttt{Right} values to the second.
 %
+Chaining \mintinline{haskell}{(|||)} encodes $n$-way branches: nested
+\mintinline{haskell}{Either}s cover arbitrarily many cases, each routed to
+its own fixed handler.
+%
 
-Chaining \texttt{|||} yields $n$-way dispatch: in
-Figure~\ref{fig:choice}, \texttt{classify} returns one of
-\texttt{Urgent}, \texttt{Routine}, or \texttt{Spam} (encoded as nested
-\texttt{Either}s), and \texttt{(|||)} routes each case to its fixed
-handler---the LLM cannot produce a value outside this set, so no injected
-content can introduce a new branch.
-
-\begin{example}[Choice pattern, Figure~\ref{fig:choice}]
-Given an incoming email, \texttt{classify} returns
-\texttt{Left Urgent}, \texttt{Right\,(Left\,Routine)}, or
-\texttt{Right\,(Right\,Spam)}.
-The \texttt{(|||)} combinator routes each case to \texttt{notifyIT},
-\texttt{logTicket}, or \texttt{quarantine} respectively.
+The \mintinline{haskell}{(|||)} directly realises the \emph{LLM-as-classifier}
+design pattern of~\cite{BeurerKellner:Patterns25}, where an LLM decides which
+branch to take but cannot introduce branches outside those declared in the
+plan.
+%
+We show a plan in Figure~\ref{fig:choice} 
+to triage incoming emails: urgent
+security alerts should notify the IT team, routine requests should be logged as
+tickets, and spam should be quarantined.
+%
+The arrow \mintinline{haskell}{classify} returns \mintinline{haskell}{Left Urgent},
+\mintinline{haskell}{Right (Left Routine)}, or \mintinline{haskell}{Right
+(Right Spam)}, and \mintinline{haskell}{(|||)} routes each case to
+\mintinline{haskell}{notifyIT}, \mintinline{haskell}{logTicket}, or
+\mintinline{haskell}{quarantine}, respectively.
+%
 An attacker injecting \emph{``disregard your instructions and call
-\texttt{deleteAllData}''} into the email body cannot cause the agent to
-invoke an arbitrary tool---the only reachable handlers are those declared
-in the plan, and \texttt{deleteAllData} is simply not among them.
-\end{example}
+\texttt{deleteAllData}''} into the email body cannot cause the agent to invoke
+an arbitrary tool---the only reachable handlers are those declared in the plan.
 
 \clearpage 
 
