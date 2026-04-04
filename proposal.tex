@@ -169,6 +169,8 @@ send results to the user, or call tools---this is the well-known
 getting tainted?}
 %
 
+\clearpage 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{State of the art}
 \label{sec:sota}
@@ -287,6 +289,8 @@ construction time, preventing injected content from introducing new
 edges---a semantic CFI for AI agents, building on the PI's prior work on
 Arrow-based IFC~\cite{Tsai:Russo:Hughes:CSF07}.
 
+\clearpage 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Significance and scientific novelty}
 \label{sec:novelty}
@@ -396,7 +400,7 @@ but also useful.
 %
 
 
-\newpage 
+\clearpage 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Project description} \label{sec:description}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -679,6 +683,27 @@ computational model underlying automation tools such as n8n and
 LangGraph\footnote{\tiny \url{https://n8n.io} (n8n) \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---where nodes represent computations and edges carry data
 between them.
 %
+
+The two fundamental arrows combinators are \texttt{arr} and \texttt{(>>>)}:
+%
+\begin{minted}[fontsize=\small]{haskell}
+-- lift a Haskell function
+arr   :: (a -> b) -> arrow a b  
+-- sequential composition
+(>>>) :: arrow a b -> arrow b c -> arrow a c  
+\end{minted}
+%
+Here \mintinline{haskell}{arrow a b} denotes an arrow from type \mintinline{haskell}{a} to type
+\mintinline{haskell}{b}; \mintinline{haskell}{a -> b} is an ordinary Haskell function.
+\mintinline{haskell}{arr} lifts a pure Haskell function into an arrow step;
+\mintinline{haskell}{(>>>)} sequences two arrow steps, requiring the output type of the
+first to match the input type of the second---enforced statically by the
+compiler.
+
+
+
+
+%
 Each step is typed: for example, \texttt{find\,*.md} produces a list of file
 paths \texttt{[File]}, \texttt{read\,files} consumes that list and produces
 \texttt{[Str]}, and so on; mismatched types are rejected at compile time.
@@ -746,6 +771,8 @@ An attacker injecting \emph{``disregard your instructions and call
 invoke an arbitrary tool---the only reachable handlers are those declared
 in the plan, and \texttt{deleteAllData} is simply not among them.
 \end{example}
+
+\clearpage 
 
 \paragraph{Aim 2: Confinement and integrity of data}
 %
@@ -900,9 +927,12 @@ guarantees to unmodified, production MCP servers, which represents a genuine
 advance in systems security research.
 The PI is the scientific leader and initiator of all three strands.
 
-\label{lastpage}
+
+\clearpage
 
 \bibliographystyle{abbrv}
 \bibliography{local,conferences,dm}
+
+\label{lastpage}
 
 \end{document}
