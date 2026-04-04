@@ -13,6 +13,7 @@
 \usepackage{pgfplots}
 \usepackage{framed}
 \usepackage{caption}
+\usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{float}
 \usepackage{todonotes}
@@ -408,9 +409,11 @@ but also useful.
 %%% TO KEEP
 
 \begin{figure*}[t]
-\begin{framed}
 \centering
-% ── Top: pipeline diagram, full width ─────────────────────────────────────
+
+% ── Subfigure (a): Arrow-based planning DSL ────────────────────────────────
+\begin{subfigure}{\linewidth}
+\centering
 \resizebox{0.80\linewidth}{!}{%
 \begin{tikzpicture}[
   node distance = 0.7cm and 1.0cm,
@@ -429,22 +432,18 @@ but also useful.
 \node[llm,  right=1.4cm of s2] (s3) {\scriptsize LLM:\\[-3pt]
                                       \tiny summarise};
 \node[tool, right=1.2cm of s3] (s4) {\scriptsize send\,email};
-
 \node[left=0.45cm of s1]  (in_b)  {\texttt{()}};
 \node[right=0.45cm of s4] (out_b) {\texttt{()}};
-
 \draw[arr] (in_b) -- (s1);
 \draw[arr] (s1)   -- node[tlabel]{\texttt{[FilePath]}} (s2);
 \draw[arr] (s2)   -- node[tlabel]{\texttt{[String]}}  (s3);
 \draw[arr] (s3)   -- node[tlabel]{\texttt{String}}    (s4);
 \draw[arr] (s4)   -- (out_b);
-
 \node[draw=black!35, dashed, rounded corners=5pt, thick,
       fit=(s1)(s2)(s3)(s4), inner sep=7pt,
       label={[font=\scriptsize,text=black!45]below:%
              graph topology fixed at construction time}]
      (bbox) {};
-
 \node[font=\tiny, text=red!70!black,
       below=0.7cm of s3, align=center] (injB)
      {\itshape injected content};
@@ -454,7 +453,6 @@ but also useful.
      {values may change; edges cannot~($\times$)};
 \end{tikzpicture}}%
 \par\smallskip
-% ── Bottom: code side by side ─────────────────────────────────────────────
 \begin{minipage}[t]{0.47\linewidth}
 \begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
 -- Primitives: each step is a typed arrow LLM a b
@@ -477,13 +475,13 @@ plan = findMarkdownFiles
 \end{minted}
 \end{minipage}
 \caption{Arrow-based planning DSL.\label{fig:arrows}}
-\end{framed}
-\end{figure*}
+\end{subfigure}
 
-\begin{figure*}[t]
-\begin{framed}
+\medskip
+
+% ── Subfigure (b): LLM-as-classifier ──────────────────────────────────────
+\begin{subfigure}{\linewidth}
 \centering
-% ── Top: choice diagram, full width ───────────────────────────────────────
 \resizebox{0.80\linewidth}{!}{%
 \begin{tikzpicture}[
   node distance = 0.5cm and 0.8cm,
@@ -497,34 +495,22 @@ plan = findMarkdownFiles
   tlabel/.style = {font=\tiny\ttfamily, fill=white, inner sep=1pt},
 ]
 \node[llm] (clf) {\scriptsize LLM:\\[-2pt]\tiny classify};
-
-% Three handler nodes to the right, spread vertically
 \node[tool, right=3.0cm of clf, yshift= 0.6cm] (h1) {\scriptsize notify IT};
 \node[tool, right=3.0cm of clf]                (h2) {\scriptsize log ticket};
 \node[tool, right=3.0cm of clf, yshift=-0.6cm] (h3) {\scriptsize quarantine};
-
-% Input
 \node[left=1.2cm of clf] (inp) {\scriptsize\texttt{Email}};
 \draw[arr] (inp) -- (clf);
-
-% Branches with type labels
 \draw[arr] (clf.east) -- node[tlabel, above, sloped, pos=0.45]{\texttt{Urgent}}  (h1.west);
 \draw[arr] (clf.east) -- node[tlabel, above, pos=0.5]{\texttt{Routine}}          (h2.west);
 \draw[arr] (clf.east) -- node[tlabel, below, sloped, pos=0.45]{\texttt{Spam}}    (h3.west);
-
-% Dashed box around handlers
 \node[draw=black!35, dashed, rounded corners=5pt, thick,
       fit=(h1)(h2)(h3), inner sep=7pt,
       label={[font=\scriptsize,text=black!45]right:handlers fixed at construction time}]
      (bbox) {};
-
-% Annotation: LLM output is constrained
 \node[font=\scriptsize, text=black!55, below=0.5cm of clf, align=center]
      {output constrained to\\[-2pt]\texttt{\{Urgent, Routine, Spam\}}};
-
 \end{tikzpicture}}%
 \par\smallskip
-% ── Bottom: code side by side ─────────────────────────────────────────────
 \begin{minipage}[t]{0.47\linewidth}
 \begin{minted}[fontsize=\scriptsize, baselinestretch=0.9]{haskell}
 -- classify returns Either to drive routing
@@ -546,15 +532,14 @@ plan = classify
    >>> (notifyIT ||| (logTicket ||| quarantine))
 \end{minted}
 \end{minipage}
-\caption{LLM-as-classifier pattern: the LLM selects from a fixed, typed set of
-  options.\label{fig:choice}}
-\end{framed}
-\end{figure*}
+\caption{LLM-as-classifier pattern.\label{fig:choice}}
+\end{subfigure}
 
-\begin{figure*}[t]
-\begin{framed}
+\medskip
+
+% ── Subfigure (c): Dual-LLM / quarantine ──────────────────────────────────
+\begin{subfigure}{\linewidth}
 \centering
-% ── Top: quarantine primitive diagram, full width ──────────────────────────
 \resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
   node distance = 0.5cm and 1.2cm,
@@ -571,53 +556,33 @@ plan = classify
   redarr/.style = {->, >=stealth, thick, dashed, red!70!black},
   tlabel/.style = {font=\tiny\ttfamily, fill=white, inner sep=1pt},
 ]
-
-% Prompt (programmer-controlled, trusted)
 \node[box, fill=green!10, draw=green!50!black] (tdesc)
      {\scriptsize \texttt{Prompt}\\[-2pt]\tiny (programmer-controlled)};
-
-% Input data (may be trusted or untrusted)
 \node[box, below=1.0cm of tdesc] (uinp)
      {\scriptsize \texttt{a}\\[-2pt]\tiny (input data)};
-
-% quarantine primitive (sandboxed LLM call)
 \node[qbox, right=2.2cm of tdesc, yshift=-0.5cm] (qprim)
      {\texttt{quarantine}\\[2pt]
       \tiny sandboxed\\[-2pt]\tiny LLM call};
-
-% Untrusted output
 \node[fac, right=2.2cm of qprim] (fac)
      {\texttt{Untrusted b}\\[2pt]
       \tiny\texttt{content\,::\,b}\\[-1pt]
       \tiny\texttt{description\,::\,String}};
-
-% Reveal and output
 \node[tool, right=1.8cm of fac] (rev) {\scriptsize reveal};
 \node[right=1.0cm of rev] (out) {\texttt{b}};
-
-% Inputs into quarantine primitive
 \draw[arr] (tdesc.east) to[out=0, in=145]
      node[tlabel, above, sloped, pos=0.4]{\texttt{Prompt}} (qprim.north west);
 \draw[arr] (uinp.east)  to[out=0, in=215]
      node[tlabel, below, sloped, pos=0.4]{\texttt{a}} (qprim.south west);
-
-% quarantine primitive → Untrusted
 \draw[arr] (qprim) -- node[tlabel, above]{\texttt{Untrusted b}} (fac);
-
-% Untrusted → reveal → output
 \draw[arr] (fac) -- node[tlabel, above]{\texttt{SafeType b}} (rev);
 \draw[arr] (rev) -- (out);
-
-% Injection annotation
 \node[font=\tiny, text=red!70!black, below=0.8cm of qprim, align=center] (inj)
      {\itshape injected content};
 \draw[redarr] (inj.north) -- (qprim.south);
 \node[font=\tiny, text=green!50!black, below=0.05cm of inj, align=center]
      {trapped inside \texttt{content};\\[-2pt]\texttt{description} is trusted};
-
 \end{tikzpicture}}%
 \par\smallskip
-% ── Bottom: code side by side ─────────────────────────────────────────────
 \begin{minipage}[t]{0.47\linewidth}
 \begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
 data Untrusted a = Untrusted
@@ -625,7 +590,7 @@ data Untrusted a = Untrusted
   , description :: String  -- trusted, from Prompt
   }
 
--- Only injection-free types can be revealed 
+-- Only injection-free types can be revealed
 reveal :: SafeType b => Untrusted b -> b
 
 -- runs LLM in isolation; returns Untrusted b
@@ -647,7 +612,9 @@ plan = arr (\e -> ("Is this email spam?", e))
 \end{minted}
 \end{minipage}
 \caption{Dual-LLM design pattern.\label{fig:dual}}
-\end{framed}
+\end{subfigure}
+
+\caption{Arrow-based DSL design patterns for secure LLM agents.\label{fig:patterns}}
 \end{figure*}
 
 \subsection{Control-flow integrity}
