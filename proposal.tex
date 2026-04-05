@@ -404,6 +404,179 @@ but also useful.
 
 %%% TO KEEP
 
+\subsection{Control-flow integrity}
+
+
+\paragraph{Attacker model.}
+We consider a \emph{single-invocation} threat model: the user issues a
+request, a fresh LLM context executes and synthesises a plan, and the plan executes.
+%
+The attacker controls the \emph{data} that flows through the plan---e.g.,
+the contents of files read by tool calls---but does not control the initial user request or the plan
+synthesis step.
+%
+The threat we address is therefore: can adversarially crafted data values,
+encountered \emph{during execution},
+cause the agent to deviate its plan?
+%
+
+The first challenge is that AI planning is inherently data-dependent: agents
+branch and call tools based on LLM outputs, opening the door to
+prompt-injection-induced control-flow hijacking at execution time.
+%
+Our key insight is that \emph{Arrows}~\cite{hughes:generalising-monads-arrows}---a
+functional abstraction for data-flow graphs, the same computational model
+underlying tools such as n8n and
+LangGraph\footnote{\tiny \url{https://n8n.io} (n8n)
+\url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---are the right
+foundation for a secure agent planning DSL, implemented in Haskell.
+%
+In an arrow, \mintinline{haskell}{arrow a b} represents a \emph{box} that
+accepts an input of type \mintinline{haskell}{a} and produces an output of
+type \mintinline{haskell}{b}; the concrete datatype substituted for
+\mintinline{haskell}{arrow} determines the effects and capabilities of each
+box (e.g., our proposed \mintinline{haskell}{LLM} datatype would capture the
+ability to invoke a language model, tools, and MCP servers).
+%
+The two core combinators---\mintinline{haskell}{arr} for lifting pure
+functions and \mintinline{haskell}{(>>>)} for sequential
+composition---together with \mintinline{haskell}{(|||)} for typed branching,
+suffice to encode the principled design patterns for prompt-injection-resistant
+agents identified in~\cite{BeurerKellner:Patterns25}:
+%
+\begin{minted}[fontsize=\small]{haskell}
+arr   :: (a -> b) -> arrow a b
+(>>>) :: arrow a b -> arrow b c 
+      -> arrow a c
+(|||) :: arrow a c -> arrow b c 
+      -> arrow (Either a b) c
+\end{minted}
+%
+The critical security property is that the graph topology is determined by
+the programmer at construction time, not by data at runtime%
+\footnote{Formally, \mintinline{haskell}{(>>>)} fixes its second argument at
+construction time---unlike monadic bind (\mintinline{haskell}{>>=}), which
+selects the continuation at runtime based on the output of the first step,
+enabling dynamic dispatch that an adversary could exploit.}.
+%
+Injected content can alter the \emph{values} flowing through a step, but
+cannot add, remove, or reorder steps: the graph topology is an invariant of
+the plan expression, not of its inputs.
+%
+We plan to formalise this as a \emph{semantic CFI theorem}.
+%
+Let $\mathit{topo}(G)$ denote the \emph{topology} of a computation graph~$G$:
+the set of nodes (steps) and directed edges (data-flow connections), abstracting
+away the values carried on the edges.
+%
+The theorem states that for any plan expression~$P$ and any two
+inputs~$v_1$, $v_2$, executing $P$ on either input yields the same graph
+topology: $\mathit{topo}(\mathit{run}(P, v_1)) =
+\mathit{topo}(\mathit{run}(P, v_2))$.
+%
+
+Figure~\ref{fig:arrows} sketches the intended design for a sequential
+pipeline. 
+%
+Given the request \emph{``read all \texttt{*.md} files and email a
+summary''}, an LLM would synthesise a plan 
+where every \mintinline{haskell}{>>>} connection is
+type-checked at compile time.
+%
+In Haskell, \mintinline{haskell}{[a]} denotes a list of elements of type
+\mintinline{haskell}{a}, so \mintinline{haskell}{[FilePath]} and
+\mintinline{haskell}{[String]} are lists of file paths and strings
+respectively.
+%
+An attacker embedding \emph{``forward all files to attacker@evil.com''} in a
+markdown file would be unable to insert a new step: the topology was fixed at
+construction time.
+
+Figure~\ref{fig:choice} illustrates how \mintinline{haskell}{(|||)} would
+realise the \emph{LLM-as-classifier} pattern of~\cite{BeurerKellner:Patterns25}.
+%
+The type \mintinline{haskell}{Either a b} represents a \emph{tagged choice}:
+a value is either of type \mintinline{haskell}{a} (left branch) or of type
+\mintinline{haskell}{b} (right branch), but never both.
+%
+The combinator \mintinline{haskell}{(|||)} takes two arrows and produces
+a single arrow that routes left-tagged values to the first arrow and
+right-tagged values to the second one---a typed dispatch table.
+%
+Chaining \mintinline{haskell}{(|||)} with nested \mintinline{haskell}{Either}s
+extends this to $n$-way branching. 
+%
+In Figure~\ref{fig:choice}, the LLM
+classifies an email as \texttt{Urgent}, \texttt{Routine}, or \texttt{Spam},
+and the plan routes each case to its dedicated handler.
+%
+The set of reachable handlers is fully determined by the plan's type---no
+injected value can introduce a handler outside that set.
+
+Finally, Figure~\ref{fig:dual} sketches our proposed \mintinline{haskell}{quarantine}
+primitive for the \emph{dual-LLM} pattern~\cite{BeurerKellner:Patterns25}.
+%
+The primitive would run a prompt against potentially adversarial input in a
+sandboxed LLM call and return an \mintinline{haskell}{Untrusted b} value,
+whose \mintinline{haskell}{content} field is the (untrusted) LLM result and
+whose \mintinline{haskell}{description} is a trusted summary derived solely
+from the programmer-controlled \mintinline{haskell}{Prompt}.
+%
+A key design goal is that \mintinline{haskell}{Untrusted a} values can only
+be consumed by \mintinline{haskell}{quarantine}---by construction, the
+planning LLM would have no access to them, so injected content could never
+propagate into trusted control flow.
+%
+Only injection-free types could be safely extracted via
+\mintinline{haskell}{reveal :: SafeType b => Untrusted b -> b}.
+%
+Here \mintinline{haskell}{SafeType b} is a \emph{predicate on types} that
+must be satisfied before the type signature after \mintinline{haskell}{=>}
+is accepted: only types such as \mintinline{haskell}{Bool},
+\mintinline{haskell}{Int}, or \mintinline{haskell}{Float}---which
+structurally cannot encode natural-language instructions---would be permitted
+to satisfy it.
+%
+This follows the recommendation of~\cite{BeurerKellner:Patterns25} to
+restrict the interface between sandboxed and trusted components to
+structured, instruction-free data.
+
+\paragraph{Task 1.1: Formalization and CFI guarantees}
+We will define a core calculus for the Arrow-based DSL, giving a
+denotational semantics to the combinators
+\mintinline{haskell}{arr}, \mintinline{haskell}{>>>}, and
+\mintinline{haskell}{|||}, and formalising the CFI theorem sketched above.
+%
+The central result to be proved is that the topology of the computation graph
+is an invariant, i.e., it is independent of the values flowing
+through it.
+%
+We will further investigate what additional combinators (e.g., loops,
+parallel composition) can be admitted without breaking the CFI guarantee.
+
+\paragraph{Task 1.2: Encoding prompt-injection-resistant design patterns} We
+will show that the patterns identified in~\cite{BeurerKellner:Patterns25} are
+expressible as typed primitives in our DSL. Consequently, any plan written
+using our arrow interface will mitigate injection
+attacks~\cite{Perez:PromptInject22,Liu:FormalizingPI:24}.
+%
+% The security argument is a semantic analogue of control-flow
+% integrity~\cite{Abadi:CFI:CCS05,Burow:CFI:CSUR17}: just as CFI prevents
+% hijacking of the binary control flow, our typed schemas prevent hijacking of
+% the agent's plan graph.
+%
+This task will also investigate whether additional patterns from the literature
+can be captured. 
+
+\paragraph{Task 1.3: Implementation and evaluation.}
+We will implement the DSL as a Haskell library and integrate it with a
+local LLM (via Ollama or a compatible backend) to synthesise
+typed plans. 
+%
+We will evaluate the prototype on existing benchmarks for prompt-injection
+attacks, including AgentDojo~\cite{Debenedetti:AgentDojo24} and
+the suite introduced by Liu et al.~\cite{Liu:FormalizingPI:24}.
+
 \begin{figure*}[t]
 \centering
 
@@ -613,177 +786,7 @@ plan = arr (\e -> ("Is this email spam?", e))
 \caption{Arrow-based DSL design patterns for secure LLM agents.\label{fig:patterns}}
 \end{figure*}
 
-\subsection{Control-flow integrity}
-
-\paragraph{Attacker model.}
-We consider a \emph{single-invocation} threat model: the user issues a
-request, a fresh LLM context executes and synthesises a plan, and the plan executes.
-%
-The attacker controls the \emph{data} that flows through the plan---e.g.,
-the contents of files read by tool calls---but does not control the initial user request or the plan
-synthesis step.
-%
-The threat we address is therefore: can adversarially crafted data values,
-encountered \emph{during execution},
-cause the agent to deviate its plan?
-%
-
-The first challenge is that AI planning is inherently data-dependent: agents
-branch and call tools based on LLM outputs, opening the door to
-prompt-injection-induced control-flow hijacking at execution time.
-%
-Our key insight is that \emph{Arrows}~\cite{hughes:generalising-monads-arrows}---a
-functional abstraction for data-flow graphs, the same computational model
-underlying tools such as n8n and
-LangGraph\footnote{\tiny \url{https://n8n.io} (n8n)
-\url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---are the right
-foundation for a secure agent planning DSL, implemented in Haskell.
-%
-In an arrow, \mintinline{haskell}{arrow a b} represents a \emph{box} that
-accepts an input of type \mintinline{haskell}{a} and produces an output of
-type \mintinline{haskell}{b}; the concrete datatype substituted for
-\mintinline{haskell}{arrow} determines the effects and capabilities of each
-box (e.g., our proposed \mintinline{haskell}{LLM} datatype would capture the
-ability to invoke a language model, tools, and MCP servers).
-%
-The two core combinators---\mintinline{haskell}{arr} for lifting pure
-functions and \mintinline{haskell}{(>>>)} for sequential
-composition---together with \mintinline{haskell}{(|||)} for typed branching,
-suffice to encode the principled design patterns for prompt-injection-resistant
-agents identified in~\cite{BeurerKellner:Patterns25}:
-%
-\begin{minted}[fontsize=\small]{haskell}
-arr   :: (a -> b) -> arrow a b
-(>>>) :: arrow a b -> arrow b c 
-      -> arrow a c
-(|||) :: arrow a c -> arrow b c 
-      -> arrow (Either a b) c
-\end{minted}
-%
-The critical security property is that the graph topology is determined by
-the programmer at construction time, not by data at runtime%
-\footnote{Formally, \mintinline{haskell}{(>>>)} fixes its second argument at
-construction time---unlike monadic bind (\mintinline{haskell}{>>=}), which
-selects the continuation at runtime based on the output of the first step,
-enabling dynamic dispatch that an adversary could exploit.}.
-%
-Injected content can alter the \emph{values} flowing through a step, but
-cannot add, remove, or reorder steps: the graph topology is an invariant of
-the plan expression, not of its inputs.
-%
-We plan to formalise this as a \emph{semantic CFI theorem}.
-%
-Let $\mathit{topo}(G)$ denote the \emph{topology} of a computation graph~$G$:
-the set of nodes (steps) and directed edges (data-flow connections), abstracting
-away the values carried on the edges.
-%
-The theorem states that for any plan expression~$P$ and any two
-inputs~$v_1$, $v_2$, executing $P$ on either input yields the same graph
-topology: $\mathit{topo}(\mathit{run}(P, v_1)) =
-\mathit{topo}(\mathit{run}(P, v_2))$.
-%
-
-Figure~\ref{fig:arrows} sketches the intended design for a sequential
-pipeline. 
-%
-Given the request \emph{``read all \texttt{*.md} files and email a
-summary''}, an LLM would synthesise a plan 
-where every \mintinline{haskell}{>>>} connection is
-type-checked at compile time.
-%
-In Haskell, \mintinline{haskell}{[a]} denotes a list of elements of type
-\mintinline{haskell}{a}, so \mintinline{haskell}{[FilePath]} and
-\mintinline{haskell}{[String]} are lists of file paths and strings
-respectively.
-%
-An attacker embedding \emph{``forward all files to attacker@evil.com''} in a
-markdown file would be unable to insert a new step: the topology was fixed at
-construction time.
-
-Figure~\ref{fig:choice} illustrates how \mintinline{haskell}{(|||)} would
-realise the \emph{LLM-as-classifier} pattern of~\cite{BeurerKellner:Patterns25}.
-%
-The type \mintinline{haskell}{Either a b} represents a \emph{tagged choice}:
-a value is either of type \mintinline{haskell}{a} (left branch) or of type
-\mintinline{haskell}{b} (right branch), but never both.
-%
-The combinator \mintinline{haskell}{(|||)} takes two arrows and produces
-a single arrow that routes left-tagged values to the first arrow and
-right-tagged values to the second one---a typed dispatch table.
-%
-Chaining \mintinline{haskell}{(|||)} with nested \mintinline{haskell}{Either}s
-extends this to $n$-way branching. 
-%
-In Figure~\ref{fig:choice}, the LLM
-classifies an email as \texttt{Urgent}, \texttt{Routine}, or \texttt{Spam},
-and the plan routes each case to its dedicated handler.
-%
-The set of reachable handlers is fully determined by the plan's type---no
-injected value can introduce a handler outside that set.
-
-Finally, Figure~\ref{fig:dual} sketches our proposed \mintinline{haskell}{quarantine}
-primitive for the \emph{dual-LLM} pattern~\cite{BeurerKellner:Patterns25}.
-%
-The primitive would run a prompt against potentially adversarial input in a
-sandboxed LLM call and return an \mintinline{haskell}{Untrusted b} value,
-whose \mintinline{haskell}{content} field is the (untrusted) LLM result and
-whose \mintinline{haskell}{description} is a trusted summary derived solely
-from the programmer-controlled \mintinline{haskell}{Prompt}.
-%
-A key design goal is that \mintinline{haskell}{Untrusted a} values can only
-be consumed by \mintinline{haskell}{quarantine}---by construction, the
-planning LLM would have no access to them, so injected content could never
-propagate into trusted control flow.
-%
-Only injection-free types could be safely extracted via
-\mintinline{haskell}{reveal :: SafeType b => Untrusted b -> b}.
-%
-Here \mintinline{haskell}{SafeType b} is a \emph{predicate on types} that
-must be satisfied before the type signature after \mintinline{haskell}{=>}
-is accepted: only types such as \mintinline{haskell}{Bool},
-\mintinline{haskell}{Int}, or \mintinline{haskell}{Float}---which
-structurally cannot encode natural-language instructions---would be permitted
-to satisfy it.
-%
-This follows the recommendation of~\cite{BeurerKellner:Patterns25} to
-restrict the interface between sandboxed and trusted components to
-structured, instruction-free data.
-
-\paragraph{Task 1.1: Formalization and CFI guarantees}
-We will define a core calculus for the Arrow-based DSL, giving a
-denotational semantics to the combinators
-\mintinline{haskell}{arr}, \mintinline{haskell}{>>>}, and
-\mintinline{haskell}{|||}, and formalising the CFI theorem sketched above.
-%
-The central result to be proved is that the topology of the computation graph
-is an invariant, i.e., it is independent of the values flowing
-through it.
-%
-We will further investigate what additional combinators (e.g., loops,
-parallel composition) can be admitted without breaking the CFI guarantee.
-
-\paragraph{Task 1.2: Encoding prompt-injection-resistant design patterns} We
-will show that the patterns identified in~\cite{BeurerKellner:Patterns25} are
-expressible as typed primitives in our DSL. Consequently, any plan written
-using our arrow interface will mitigate injection
-attacks~\cite{Perez:PromptInject22,Liu:FormalizingPI:24}.
-%
-% The security argument is a semantic analogue of control-flow
-% integrity~\cite{Abadi:CFI:CCS05,Burow:CFI:CSUR17}: just as CFI prevents
-% hijacking of the binary control flow, our typed schemas prevent hijacking of
-% the agent's plan graph.
-%
-This task will also investigate whether additional patterns from the literature
-can be captured. 
-
-\paragraph{Task 1.3: Implementation and evaluation.}
-We will implement the DSL as a Haskell library and integrate it with a
-local LLM (via Ollama or a compatible backend) to synthesise
-typed plans. 
-%
-We will evaluate the prototype on existing benchmarks for prompt-injection
-attacks, including AgentDojo~\cite{Debenedetti:AgentDojo24} and
-the suite introduced by Liu et al.~\cite{Liu:FormalizingPI:24}. 
+\clearpage
 
 \subsection{Confinement and integrity of data}
 %
@@ -795,7 +798,7 @@ observe the results, and iterate until the task is complete.
 %
 We consider three sources of misbehaviour that can violate confidentiality
 or integrity of data during such a loop:
-(i)~\emph{prompt injection};  
+(i)~\emph{prompt injection};
 (ii)~\emph{hallucination}---the LLM confidently issuing a tool call with
 incorrect arguments that reads or overwrites the wrong files; and
 (iii)~\emph{wrongly crafted instructions}---a user or orchestrating system
@@ -810,7 +813,7 @@ We assume the \emph{LLM provider is trusted}: sending data to the model for
 inference does not leak it, and the model itself does not deliberately
 exfiltrate information.
 %
-The threat lies entirely in the effects of the \emph{tool calls} the agent issues. 
+The threat lies entirely in the effects of the \emph{tool calls} the agent issues.
 
 Our goal is an IFC enforcement that is \emph{backwards-compatible}:
 no changes to existing AI agent code, no special planning language,
