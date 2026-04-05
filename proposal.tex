@@ -872,6 +872,17 @@ A \emph{write effect} captures the act of producing an output: we verify that
 the process's label flows to the destination's label, tightening the
 destination when necessary or possible.
 %
+A novel aspect of our design is the treatment of the terminal as an
+\emph{IFC channel}: when a child process writes to the screen (a \texttt{tty} device), its label
+propagates \emph{upward} to the parent agent that reads that output,
+making the terminal a propagation channel of taint between processes rather
+than a passive I/O device.
+%
+To our knowledge, no prior OS-level IFC system has modelled the terminal in this way;
+all three treat it as a static external endpoint~\cite{Efstathopoulos:2005,krohn:flume,Zeldovich:2006}---rather than a
+label-propagating channel.
+%
+
 Figure~\ref{fig:taint} focuses on two representative tool invocations.
 %
 In case~(i), $P_1$ runs a command such as \texttt{cat /sensitive/report.txt}
