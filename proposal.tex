@@ -854,6 +854,80 @@ taint is propagated at each LSM hook, and no kernel patch or new OS is required.
 % This preserves agent progress while still enforcing the policy lattice,
 % and it produces an audit trail of every information-flow decision.
 
+\paragraph{Taint propagation via eBPF hooks}
+Our design intercepts system calls with two kinds of IFC effect,\footnote{%
+  Concretely: \texttt{fork}/\texttt{exec} propagate the parent's label to the
+  child; \texttt{open}/\texttt{create} tightens a new file's label to the
+  creator's current label; \texttt{read} raises the caller's label;
+  \texttt{write} tightens the target's label if possible (e.g., a file) or rejects it (e.g., network connection).}
+grounded in the principles of LIO~\cite{stefan:lio,Stefan:LIO:JFP16,Buiras:2015},
+the PI's line of work on dynamic floating-label IFC.
+%
+A \emph{read effect} captures the act of observing information: the
+process's label is raised to the join of its current process label and the label of
+the data being read, ensuring it can no longer write to destinations less
+sensitive than what it has observed. 
+%
+A \emph{write effect} captures the act of producing an output: we verify that
+the process's label flows to the destination's label, tightening the
+destination when necessary or possible.
+%
+Figure~\ref{fig:taint} focuses on two representative tool invocations.
+%
+In case~(i), $P_1$ runs a command such as \texttt{cat /sensitive/report.txt}
+and prints the result to the terminal; the AI agent reads that output back,
+so the child's taint \emph{propagates to the parent}---the agent's label is
+raised to reflect the sensitivity of the data it has now observed.
+%
+In case~(ii), $P_2$ runs a command such as
+\texttt{cp /sensitive/data.csv /results/out.csv}, reading and writing
+directly in the filesystem without returning output to the terminal;
+the child's taint remains confined to file~$f$, and the parent's label
+is \emph{not raised}, thereby avoiding label creep in the orchestrating agent.
+%
+A key challenge is therefore to correctly classify each shell command invocation
+as one that reports back to the agent---and thus necessarily raises its label---or
+one that operates silently on the filesystem, so that the agent's label remains
+unaffected and it retains the ability to communicate results to lower-sensitivity
+destinations.
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  node distance = 0.9cm and 2.0cm,
+  box/.style   = {draw, thick, rounded corners=2pt,
+                  minimum width=2.0cm, minimum height=0.55cm,
+                  align=center, font=\scriptsize},
+  agent/.style = {box, fill=orange!15, draw=orange!50!black},
+  proc/.style  = {box, fill=blue!10,   draw=blue!50!black},
+  store/.style = {box, fill=green!10,  draw=green!50!black},
+  arr/.style   = {->, >=stealth, thick},
+  tlabel/.style= {font=\tiny\ttfamily, fill=white, inner sep=1pt},
+]
+\node[agent]                                        (agent) {AI Agent (LLM)};
+\node[proc,  below left=1.4cm and 2.8cm of agent]  (p1)    {Shell $P_1$};
+\node[proc,  below right=1.4cm and 2.8cm of agent] (p2)    {Shell $P_2$};
+\node[store, below=1.4cm of agent]                 (term)  {Terminal (tty)};
+\node[store, below=1.0cm of p1]                    (filel) {File $f'$};
+\node[store, below=1.0cm of p2]                    (file)  {File $f$};
+\draw[arr] (agent.south west) -- node[tlabel, left, near end]  {fork/exec} (p1.north);
+\draw[arr] (agent.south east) -- node[tlabel, right, near end] {fork/exec} (p2.north);
+\draw[arr] (p1)               -- node[tlabel, above] {write(tty)} (term);
+\draw[arr] (filel)            -- node[tlabel, right] {read($f'$)}    (p1);
+\draw[arr] (file)             -- node[tlabel, right] {read($f$)}     (p2);
+\draw[arr] (p2)               -- node[tlabel, left]  {write($f$)}    (file);
+\draw[arr] (term.north)       -- node[tlabel, right] {read(tty)}    (agent.south);
+\end{tikzpicture}
+\caption{Two representative tool invocations in an AI agent loop turn.
+  % (i)~$P_1$ returns output to the terminal (e.g., \texttt{cat /sensitive/report.txt});
+  % the agent reads it back, so $P_1$'s taint propagates to the parent and raises the
+  % agent's label.
+  % (ii)~$P_2$ reads and writes the filesystem silently
+  % (e.g., \texttt{cp /sensitive/data.csv /results/out.csv});
+  % its taint stays in file~$f$ and does \emph{not} propagate to the agent,
+  % avoiding label creep.
+\label{fig:taint}}
+\end{figure*}
 
 
 
