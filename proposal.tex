@@ -16,6 +16,7 @@
 \usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{float}
+\usepackage{stfloats}
 \usepackage{todonotes}
 \usepackage{microtype}
 \usepackage{pgfplots}
@@ -406,6 +407,74 @@ but also useful.
 
 \subsection{Control-flow integrity}
 
+% ── Figure 1: Arrow-based planning DSL ────────────────────────────────────
+\begin{figure*}[b]
+\centering
+\resizebox{0.80\linewidth}{!}{%
+\begin{tikzpicture}[
+  node distance = 0.7cm and 1.0cm,
+  box/.style    = {draw, thick, rounded corners=2pt,
+                   minimum width=1.3cm, minimum height=0.5cm,
+                   align=center, font=\scriptsize},
+  tool/.style   = {box, fill=blue!10,   draw=blue!50!black},
+  llm/.style    = {box, fill=orange!15, draw=orange!50!black},
+  arr/.style    = {->, >=stealth, thick},
+  redarr/.style = {->, >=stealth, thick, dashed, red!70!black},
+  tlabel/.style = {font=\tiny\ttfamily, midway, above=2pt,
+                   fill=white, inner sep=1pt},
+]
+\node[tool]                    (s1) {\scriptsize find\,*.md};
+\node[tool, right=1.6cm of s1] (s2) {\scriptsize read\,files};
+\node[llm,  right=1.4cm of s2] (s3) {\scriptsize LLM:\\[-3pt]
+                                      \tiny summarise};
+\node[tool, right=1.2cm of s3] (s4) {\scriptsize send\,email};
+\node[left=0.45cm of s1]  (in_b)  {\texttt{()}};
+\node[right=0.45cm of s4] (out_b) {\texttt{()}};
+\draw[arr] (in_b) -- (s1);
+\draw[arr] (s1)   -- node[tlabel]{\texttt{[FilePath]}} (s2);
+\draw[arr] (s2)   -- node[tlabel]{\texttt{[String]}}  (s3);
+\draw[arr] (s3)   -- node[tlabel]{\texttt{String}}    (s4);
+\draw[arr] (s4)   -- (out_b);
+\node[draw=black!35, dashed, rounded corners=5pt, thick,
+      fit=(s1)(s2)(s3)(s4), inner sep=7pt,
+      label={[font=\scriptsize,text=black!45]below:%
+             graph topology fixed at construction time}]
+     (bbox) {};
+\node[font=\tiny, text=red!70!black,
+      below=0.7cm of s3, align=center] (injB)
+     {\itshape injected content};
+\draw[redarr] (injB.north) -- (s3.south);
+\node[font=\tiny, text=green!50!black,
+      below=0.05cm of injB, align=center]
+     {values may change; edges cannot~($\times$)};
+\end{tikzpicture}}%
+\par\smallskip
+\begin{minipage}[t]{0.47\linewidth}
+\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
+-- Primitives: each step is a typed arrow LLM a b
+findMarkdownFiles :: LLM ()         [FilePath]
+readFiles         :: LLM [FilePath] [String]
+summarizeContent  :: LLM [String]   String
+sendSummaryEmail  :: LLM String     ()
+\end{minted}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
+-- Plan: compose primitives with (>>>)
+-- types must match at every connection point
+plan :: LLM () ()
+plan = findMarkdownFiles
+   >>> readFiles
+   >>> summarizeContent
+   >>> sendSummaryEmail
+\end{minted}
+\end{minipage}
+\caption{Arrow-based planning DSL.\label{fig:arrows}}
+\end{figure*}
+
+
+
 
 \paragraph{Attacker model.}
 We consider a \emph{single-invocation} threat model: the user issues a
@@ -577,78 +646,10 @@ We will evaluate the prototype on existing benchmarks for prompt-injection
 attacks, including AgentDojo~\cite{Debenedetti:AgentDojo24} and
 the suite introduced by Liu et al.~\cite{Liu:FormalizingPI:24}.
 
+% ── Figure 2: LLM-as-classifier and Dual-LLM patterns ─────────────────────
 \begin{figure*}[t]
 \centering
 
-% ── Subfigure (a): Arrow-based planning DSL ────────────────────────────────
-\begin{subfigure}{\linewidth}
-\centering
-\resizebox{0.80\linewidth}{!}{%
-\begin{tikzpicture}[
-  node distance = 0.7cm and 1.0cm,
-  box/.style    = {draw, thick, rounded corners=2pt,
-                   minimum width=1.3cm, minimum height=0.5cm,
-                   align=center, font=\scriptsize},
-  tool/.style   = {box, fill=blue!10,   draw=blue!50!black},
-  llm/.style    = {box, fill=orange!15, draw=orange!50!black},
-  arr/.style    = {->, >=stealth, thick},
-  redarr/.style = {->, >=stealth, thick, dashed, red!70!black},
-  tlabel/.style = {font=\tiny\ttfamily, midway, above=2pt,
-                   fill=white, inner sep=1pt},
-]
-\node[tool]                    (s1) {\scriptsize find\,*.md};
-\node[tool, right=1.6cm of s1] (s2) {\scriptsize read\,files};
-\node[llm,  right=1.4cm of s2] (s3) {\scriptsize LLM:\\[-3pt]
-                                      \tiny summarise};
-\node[tool, right=1.2cm of s3] (s4) {\scriptsize send\,email};
-\node[left=0.45cm of s1]  (in_b)  {\texttt{()}};
-\node[right=0.45cm of s4] (out_b) {\texttt{()}};
-\draw[arr] (in_b) -- (s1);
-\draw[arr] (s1)   -- node[tlabel]{\texttt{[FilePath]}} (s2);
-\draw[arr] (s2)   -- node[tlabel]{\texttt{[String]}}  (s3);
-\draw[arr] (s3)   -- node[tlabel]{\texttt{String}}    (s4);
-\draw[arr] (s4)   -- (out_b);
-\node[draw=black!35, dashed, rounded corners=5pt, thick,
-      fit=(s1)(s2)(s3)(s4), inner sep=7pt,
-      label={[font=\scriptsize,text=black!45]below:%
-             graph topology fixed at construction time}]
-     (bbox) {};
-\node[font=\tiny, text=red!70!black,
-      below=0.7cm of s3, align=center] (injB)
-     {\itshape injected content};
-\draw[redarr] (injB.north) -- (s3.south);
-\node[font=\tiny, text=green!50!black,
-      below=0.05cm of injB, align=center]
-     {values may change; edges cannot~($\times$)};
-\end{tikzpicture}}%
-\par\smallskip
-\begin{minipage}[t]{0.47\linewidth}
-\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
--- Primitives: each step is a typed arrow LLM a b
-findMarkdownFiles :: LLM ()         [FilePath]
-readFiles         :: LLM [FilePath] [String]
-summarizeContent  :: LLM [String]   String
-sendSummaryEmail  :: LLM String     ()
-\end{minted}
-\end{minipage}%
-\hfill
-\begin{minipage}[t]{0.47\linewidth}
-\begin{minted}[fontsize=\scriptsize, baselinestretch=1.1]{haskell}
--- Plan: compose primitives with (>>>)
--- types must match at every connection point
-plan :: LLM () ()
-plan = findMarkdownFiles
-   >>> readFiles
-   >>> summarizeContent
-   >>> sendSummaryEmail
-\end{minted}
-\end{minipage}
-\caption{Arrow-based planning DSL.\label{fig:arrows}}
-\end{subfigure}
-
-\medskip
-
-% ── Subfigure (b): LLM-as-classifier ──────────────────────────────────────
 \begin{subfigure}{\linewidth}
 \centering
 \resizebox{0.80\linewidth}{!}{%
@@ -706,7 +707,6 @@ plan = classify
 
 \medskip
 
-% ── Subfigure (c): Dual-LLM / quarantine ──────────────────────────────────
 \begin{subfigure}{\linewidth}
 \centering
 \resizebox{\linewidth}{!}{%
@@ -783,10 +783,8 @@ plan = arr (\e -> ("Is this email spam?", e))
 \caption{Dual-LLM design pattern.\label{fig:dual}}
 \end{subfigure}
 
-\caption{Arrow-based DSL design patterns for secure LLM agents.\label{fig:patterns}}
+\caption{LLM-as-classifier and dual-LLM design patterns.\label{fig:patterns}}
 \end{figure*}
-
-\clearpage
 
 \subsection{Confinement and integrity of data}
 %
