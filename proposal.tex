@@ -785,8 +785,6 @@ We will evaluate the prototype on existing benchmarks for prompt-injection
 attacks, including AgentDojo~\cite{Debenedetti:AgentDojo24} and
 the suite introduced by Liu et al.~\cite{Liu:FormalizingPI:24}. 
 
-\clearpage 
-
 \subsection{Confinement and integrity of data}
 %
 
@@ -939,6 +937,82 @@ destinations.
   % avoiding label creep.
 \label{fig:taint}}
 \end{figure*}
+
+
+\paragraph{IFC labels}
+
+POSIX permission bits assign read and write access to three roles:
+\emph{owner} (user), \emph{group}, and \emph{others}; we ignore execute bits.
+\footnote{Linux permissions are non-cumulative: a process is governed by
+  exactly one role---e.g., a user matching the file's owner obtains the owner
+  bits regardless of group membership.
+  %
+  We therefore treat $\mathsf{other}$ as more restrictive than $\mathsf{group}$,
+  which is more restrictive than $\mathsf{user}$.}
+%
+We propose IFC labels as triples $(\rho,\, b_r,\, b_w)$ of a role
+$\rho \in \{\mathsf{user},\, \mathsf{group},\, \mathsf{other}\}$ and two
+permission bits $b_r, b_w \in \{0,1\}$ indicating whether read and write are
+allowed, read directly from POSIX bits.
+%
+The join is defined as
+$(\rho_1, b_{r_1}, b_{w_1}) \sqcup (\rho_2, b_{r_2}, b_{w_2}) =
+(\rho_1 \sqcup \rho_2,\; b_{r_1} \mathbin{\&} b_{r_2},\; b_{w_1} \mathbin{\&} b_{w_2})$,
+where $\mathbin{\&}$ is bitwise AND, and roles are joined as described below.
+
+Joining roles requires more care.
+When both labels carry the \emph{same} role identity, the join is that identity.
+When they differ, no single POSIX owner or group can represent the combined
+identity, so we introduce two special principals:
+$\mathsf{manyusers}$, for joins across distinct owners, and
+$\mathsf{manygroups}$, for joins across distinct groups:
+\begin{align*}
+  \mathsf{user}_A \sqcup \mathsf{user}_B &= \mathsf{manyusers} \quad (A \neq B), \\
+  \mathsf{group}_G \sqcup \mathsf{group}_H &= \mathsf{manygroups} \quad (G \neq H).
+\end{align*}
+Only a system administrator can grant access under these principals, since no
+ordinary user can assign a synthetic multi-identity as a file owner.
+As a practical consequence, data whose label reaches $\mathsf{manyusers}$ or
+$\mathsf{manygroups}$ is quarantined from ordinary users until an administrator
+explicitly re-grants access.
+For example, if an agent reads a file owned by Alice and one owned by Bob, any
+file it subsequently writes inherits a $(\mathsf{manyusers}, \ldots)$ label and
+is inaccessible to either user without administrative intervention.
+For flows that stay within a single user or group, labels propagate naturally,
+preserving confidentiality and integrity at group boundaries without interfering
+with files owned by other users.
+
+Finally, to prevent label creep when agents process \emph{public} data, we
+introduce one relaxation: if a file is readable by \emph{others} (i.e., it
+carries the $\mathsf{other}\text{:}\mathsf{r}$ bit), we treat its label as the
+bottom element~$\bot$.
+A world-readable file is already public, so reading it carries no
+confidentiality obligation and must not raise the reader's label.
+This single rule eliminates spurious escalations that would otherwise occur
+whenever an agent reads shared configuration files or other non-sensitive system
+resources.
+%
+\paragraph{Task~2.1 --- BPF-LSM floating-label monitor.}
+We will implement the floating-label IFC monitor using BPF-LSM hooks,
+realising taint propagation for \texttt{read}, \texttt{write},
+\texttt{fork}/\texttt{exec}, and \texttt{tty} events with POSIX-derived labels,
+requiring no kernel patches or application recompilation.
+
+\paragraph{Task~2.2 --- Label-creep mitigation and noninterference.}
+We will design and implement two label-creep mitigation techniques: (i)~files
+whose \textsf{other}:r bit is set are treated as $\bot$, so reading public
+resources does not raise the agent's label; and (ii)~taint is not propagated to
+the parent agent when a child process writes exclusively to files rather than
+to the \texttt{terminal}, confining sensitivity to the filesystem rather than the
+orchestrating agent.
+%
+We will prove that both relaxations preserve noninterference.
+
+\paragraph{Task~2.3 --- Evaluation on agentic benchmarks.}
+We will evaluate the system on established agentic benchmarks such as
+SWE-bench~\cite{Jimenez:SWEBench24}, measuring security guarantees,
+label-creep incidence, and performance overhead across representative
+file-system-intensive agent tasks.
 
 
 
