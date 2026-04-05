@@ -814,155 +814,48 @@ exfiltrate information.
 %
 The threat lies entirely in the effects of the \emph{tool calls} the agent issues. 
 
-\paragraph{Challenge: backwards-compatible IFC at the OS level.}
-Prior IFC systems require either modifying applications, adopting special
-programming languages, or replacing the OS kernel~\cite{Zeldovich:2006,Efstathopoulos:2005}.
+Our goal is an IFC enforcement that is \emph{backwards-compatible}:
+no changes to existing AI agent code, no special planning language,
+and deployable on standard Linux systems.
 %
-None of these options is viable for existing MCP servers and shell tools.
+Prior OS-level IFC systems require some critical changes:
+Flume~\cite{krohn:flume} patches the kernel and replaces \texttt{libc};
+HiStar~\cite{Zeldovich:2006} and Asbestos~\cite{Efstathopoulos:2005}
+introduce a new OS; all three require recompiling applications.
 %
-Our goal is an IFC enforcement that is \emph{fully backwards-compatible}:
-no changes to existing code, no special planning language, deployable on
-any standard Linux system.
+Beyond deployment, prior systems also treat IFC labels and POSIX filesystem
+permissions as \emph{orthogonal}---introducing a dual label/permission model to maintain.
 %
-Our approach, prototyped in \texttt{/vol/ai-labels}, is to implement
-LIO-style floating-label IFC~\cite{stefan:lio} at the OS level using
-eBPF~\cite{Vieira:eBPF20}---a Linux technology that attaches sandboxed
-programs to kernel hooks without modifying the kernel or any user-space
-application.
+We depart from both limitations: our design requires no kernel patches,
+no new OS, no modified \texttt{libc}, and no recompilation, while
+\emph{inferring} IFC labels directly from POSIX permission bits.
 %
-Three sub-challenges must be addressed.
 
-\paragraph{Sub-challenge 1: What labels to use.}
-Standard IFC systems use purpose-built security labels (e.g.,
-lattice levels, DC-labels~\cite{Stefan:2011}) that practitioners must learn
-and configure.
+Linux has long supported mandatory access control through SELinux~\cite{loscocco:selinux},
+but SELinux enforces a \emph{static} IFC policy: labels are fixed at process creation and
+do not propagate with data flows.
 %
-Our key insight is that POSIX file-permission bits---already present on every
-file in the system---can serve directly as IFC labels.
+eBPF~\cite{Vieira:eBPF20} changes this calculus.
 %
-We propose to represent the label of a process or file as a triple
-$[(u, r_u, w_u, x_u),\,(g, r_g, w_g, x_g),\,(o, r_o, w_o, x_o)]$
-matching the standard \texttt{rwxr-xr--} notation.
+Originally a small in-kernel virtual machine for packet inspection,
+eBPF has been extended to hook into a wide range of kernel events---including
+the Linux Security Module (LSM) hooks that govern every security-sensitive
+operation on files, processes, and sockets.
 %
-Labels form a lattice under the \emph{join} operator $\sqcup$: permission
-bits are ANDed (taking the more restrictive value) and user/group identities
-escalate to \texttt{manyuser}/\texttt{manygroup} when data from multiple
-principals is combined.
+We propose a design that shows eBPF is \emph{sufficient to implement
+OS-level floating-label IFC} for AI agent loops: labels travel with data,
+taint is propagated at each LSM hook, and no kernel patch or new OS is required.
 %
-This makes policies immediately interpretable---a process label of
-\texttt{rw-r-----} means its data may only be written to files at least
-as restrictive as \texttt{rw-r-----}.
+% Our initial prototype departs from Asbestos, HiStar, and Flume in one further
+% respect: rather than \emph{blocking} disallowed flows, our monitor
+% \emph{tightens} the label of newly created files to reflect the sensitivity of
+% the data written into them.
+% %
+% This preserves agent progress while still enforcing the policy lattice,
+% and it produces an audit trail of every information-flow decision.
 
-\paragraph{Sub-challenge 2: Implementing IFC tracking with eBPF.}
-Each process carries a floating label, initialised to $L_{\mathit{init}}$
-(all permission bits~1, least restrictive) at process start.
-%
-Three BPF-LSM hooks implement the tracking:
-(i)~\texttt{file\_open} --- on every file read, the process label is updated
-with $L_{\mathit{proc}} \leftarrow L_{\mathit{proc}} \sqcup L_{\mathit{file}}$;
-(ii)~\texttt{file\_permission} --- a write is blocked if any permission bit
-of the target file exceeds the corresponding bit of the process label;
-(iii)~\texttt{bprm\_committed\_creds} --- on \texttt{exec()}, the label is
-reset to $L_{\mathit{init}}$ for the new process's uid/gid.
-%
-We will formalise the semantics of this tracking, prove that it satisfies
-non-interference~\cite{Goguen:Meseguer:Noninterference}, and show that
-eBPF is expressive enough to encode floating-label IFC---a result of
-independent interest.
 
-\paragraph{Sub-challenge 3: Avoiding label creep.}
-The main obstacle to practical IFC is \emph{label creep}: a long-running
-agent accumulates taint monotonically and eventually cannot write to any
-useful output.
-%
-We will investigate several techniques to mitigate this; two are illustrated
-in Figure~\ref{fig:ifc-tricks}.
-%
-\emph{Exec-reset isolation} (Figure~\ref{fig:ifc-tricks}a): instead of
-reading a sensitive file and passing its contents back to the agent, the LLM
-synthesises a shell command that reads the file and writes results directly
-to an output file with a matching label.
-%
-Because the command runs in a fresh \texttt{exec()}'d process, its label
-resets to $L_{\mathit{init}}$ before the read; the agent process itself is
-never tainted.
-%
-\emph{Others-as-declassify} (Figure~\ref{fig:ifc-tricks}b): when a process
-reads a file owned by a different user \emph{and} a different group, but the
-file is world-readable ($r_o = 1$), only the \texttt{others} permission bits
-are updated---the process uid, gid, and user/group bits are left unchanged.
-%
-This exception prevents reading publicly shared files (documentation,
-shared libraries, public datasets) from contaminating the process identity,
-while still tracking any non-public reads faithfully.
 
-\begin{figure*}[t]
-\centering
-\begin{subfigure}{0.48\linewidth}
-\centering
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  node distance=0.6cm and 1.2cm,
-  box/.style={draw, thick, rounded corners=2pt, minimum width=1.6cm,
-              minimum height=0.45cm, inner sep=3pt, align=center, font=\scriptsize},
-  proc/.style={box, fill=orange!15, draw=orange!50!black},
-  file/.style={box, fill=blue!10, draw=blue!50!black},
-  cmd/.style={box, fill=green!10, draw=green!50!black},
-  arr/.style={->, >=stealth, thick},
-  tlabel/.style={font=\tiny\ttfamily, fill=white, inner sep=1pt},
-]
-\node[proc] (llm) {\scriptsize LLM agent\\[-2pt]\tiny label: $L_{\mathit{init}}$};
-\node[file, right=2.5cm of llm, yshift=0.8cm] (secret)
-    {\scriptsize \texttt{secret.txt}\\[-2pt]\tiny label: \texttt{rw-------}};
-\node[file, right=2.5cm of llm, yshift=-0.8cm] (out)
-    {\scriptsize \texttt{output.txt}\\[-2pt]\tiny label: \texttt{rw-------}};
-\node[cmd, below=1.2cm of llm] (cmd)
-    {\scriptsize fresh \texttt{exec()}'d cmd\\[-2pt]\tiny label resets to $L_{\mathit{init}}$};
-\draw[arr] (llm) -- node[tlabel, left]{synthesise cmd} (cmd);
-\draw[arr] (cmd.east) to[out=0, in=220]
-    node[tlabel, below, sloped, pos=0.5]{read} (secret.south west);
-\draw[arr] (cmd.east) to[out=0, in=140]
-    node[tlabel, above, sloped, pos=0.5]{write} (out.north west);
-\node[font=\tiny, text=green!50!black, below=0.3cm of cmd, align=center]
-    {LLM label stays $L_{\mathit{init}}$\\[-1pt]agent never tainted};
-\end{tikzpicture}}
-\caption{Exec-reset isolation.\label{fig:ifc-tricks-a}}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\linewidth}
-\centering
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  node distance=0.6cm and 1.2cm,
-  box/.style={draw, thick, rounded corners=2pt, minimum width=1.6cm,
-              minimum height=0.45cm, inner sep=3pt, align=center, font=\scriptsize},
-  proc/.style={box, fill=orange!15, draw=orange!50!black},
-  file/.style={box, fill=blue!10, draw=blue!50!black},
-  pub/.style={box, fill=gray!10, draw=gray!50},
-  arr/.style={->, >=stealth, thick},
-  tlabel/.style={font=\tiny\ttfamily, fill=white, inner sep=1pt},
-]
-\node[proc] (proc)
-    {\scriptsize process\\[-2pt]\tiny label: $[(u_p, \ldots),(g_p,\ldots),(o,\ldots)]$};
-\node[file, above right=0.8cm and 2.2cm of proc] (priv)
-    {\scriptsize \texttt{private.txt}\\[-2pt]\tiny $u_f \neq u_p$, $g_f \neq g_p$, $r_o=0$};
-\node[pub, below right=0.8cm and 2.2cm of proc] (pub)
-    {\scriptsize \texttt{public.txt}\\[-2pt]\tiny $u_f \neq u_p$, $g_f \neq g_p$, $r_o=1$};
-\node[proc, right=5.5cm of proc] (after) {};
-\node[font=\scriptsize, align=center] at (after)
-    {\scriptsize process\\[-2pt]\tiny label: uid/gid unchanged\\[-1pt]\tiny only \texttt{others} bits updated};
-\draw[arr] (proc.east) to[out=30, in=180]
-    node[tlabel, above, sloped, pos=0.5]{full join} (priv.west);
-\draw[arr] (proc.east) to[out=-30, in=180]
-    node[tlabel, below, sloped, pos=0.5]{others only} (pub.west);
-\draw[arr] (pub.east) to[out=0, in=210] (after.south west);
-\node[font=\tiny, text=green!50!black, below=0.3cm of after, align=center]
-    {identity preserved\\[-1pt]world-readable files do not\\[-1pt]contaminate uid/gid};
-\end{tikzpicture}}
-\caption{Others-as-declassify exception.\label{fig:ifc-tricks-b}}
-\end{subfigure}
-\caption{Two label-creep mitigation techniques.\label{fig:ifc-tricks}}
-\end{figure*}
 
 \paragraph{Goal 3: Privacy-bounded data consumption.}
 The third challenge arises specifically from Goal 2: to answer queries about
