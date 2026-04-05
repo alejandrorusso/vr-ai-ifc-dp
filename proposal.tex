@@ -898,7 +898,7 @@ is \emph{not raised}, thereby avoiding label creep in the orchestrating agent.
 %
 A key challenge is therefore to correctly classify each shell command invocation
 as one that reports back to the agent---and thus necessarily raises its label---or
-one that operates silently on the filesystem, so that the agent's label remains
+one that just operates on the filesystem, so that the agent's label remains
 unaffected and it retains the ability to communicate results to lower-sensitivity
 destinations.
 
@@ -929,7 +929,7 @@ destinations.
 \draw[arr] (p2)               -- node[tlabel, left]  {write($f$)}    (file);
 \draw[arr] (term.north)       -- node[tlabel, right] {read(tty)}    (agent.south);
 \end{tikzpicture}
-\caption{Two representative tool invocations in an AI agent loop turn.
+\caption{Two representative tool invocations in an AI agent loop iteration.
   % (i)~$P_1$ returns output to the terminal (e.g., \texttt{cat /sensitive/report.txt});
   % the agent reads it back, so $P_1$'s taint propagates to the parent and raises the
   % agent's label.
