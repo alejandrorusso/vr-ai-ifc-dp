@@ -614,10 +614,23 @@ plan = arr (\e -> ("Is this email spam?", e))
 \end{figure*}
 
 \subsection{Control-flow integrity}
+
+\paragraph{Attacker model.}
+We consider a \emph{single-invocation} threat model: the user issues a
+request, a fresh LLM context executes and synthesises a plan, and the plan executes.
 %
+The attacker controls the \emph{data} that flows through the plan---e.g.,
+the contents of files read by tool calls---but does not control the initial user request or the plan
+synthesis step.
+%
+The threat we address is therefore: can adversarially crafted data values,
+encountered \emph{during execution},
+cause the agent to deviate its plan?
+%
+
 The first challenge is that AI planning is inherently data-dependent: agents
-branch, loop, and call tools based on LLM outputs, opening the door to
-prompt-injection-induced control-flow hijacking.
+branch and call tools based on LLM outputs, opening the door to
+prompt-injection-induced control-flow hijacking at execution time.
 %
 Our key insight is that \emph{Arrows}~\cite{hughes:generalising-monads-arrows}---a
 functional abstraction for data-flow graphs, the same computational model
@@ -776,16 +789,30 @@ the suite introduced by Liu et al.~\cite{Liu:FormalizingPI:24}.
 
 \subsection{Confinement and integrity of data}
 %
-Modern AI coding assistants---Claude Code, Gemini Code, and their
-successors---operate as long-running processes that call shell tools,
-read files, and write outputs on behalf of multiple users.
+
+\paragraph{Attacker model.}
+Modern AI coding assistants operate as long-running \emph{agentic loops}: they receive a
+task, issue tool calls (read files, execute shell commands, write outputs),
+observe the results, and iterate until the task is complete.
 %
-When several users share the same agent, a critical question arises: can
-the agent's tool calls inadvertently leak one user's private data to another?
+We consider three sources of misbehaviour that can violate confidentiality
+or integrity of data during such a loop:
+(i)~\emph{prompt injection};  
+(ii)~\emph{hallucination}---the LLM confidently issuing a tool call with
+incorrect arguments that reads or overwrites the wrong files; and
+(iii)~\emph{wrongly crafted instructions}---a user or orchestrating system
+that, intentionally or by mistake, directs the agent to perform operations
+that violate another user's data boundaries.
 %
-We assume the AI provider is trusted (sending data to the model is
-acceptable), but we do \emph{not} trust that tool calls respect
-confidentiality and integrity boundaries between users.
+All three can cause the agent's tool calls to violate \emph{confidentiality}
+(data flows to a less-sensitive destination) or \emph{integrity} (data is
+modified by an insufficiently trusted source).
+%
+We assume the \emph{LLM provider is trusted}: sending data to the model for
+inference does not leak it, and the model itself does not deliberately
+exfiltrate information.
+%
+The threat lies entirely in the effects of the \emph{tool calls} the agent issues. 
 
 \paragraph{Challenge: backwards-compatible IFC at the OS level.}
 Prior IFC systems require either modifying applications, adopting special
