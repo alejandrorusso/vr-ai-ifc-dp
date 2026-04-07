@@ -67,8 +67,11 @@ the real world: querying databases, executing code, calling APIs, reading and
 writing files, and orchestrating further sub-agents---as exemplified by
 systems such as Claude Code.
 %
-Current LLM agent frameworks are \emph{insecure by design}~\cite{Zhao:ParasiticMCP26} (see Figure~\ref{fig:attack}): they enforce only coarse-grained \emph{access control}, regulating which tools an agent may invoke but providing no guarantees on how data propagates \emph{after} access is
-granted.
+Current LLM agent frameworks provide \emph{weak security guarantees}: 
+they enforce only coarse-grained \emph{access
+control}, regulating which tools an agent may invoke but providing no
+guarantees on how data propagates \emph{after} access is
+granted~\cite{Sabelfeld:Myers:JSAC,Zhao:ParasiticMCP26}.
 %
 Sensitive data retrieved by the agent can freely flow to unauthorised
 observers---a fundamental limitation of access control, which tracks \emph{who}
@@ -82,7 +85,7 @@ This characteristic enables \emph{prompt injection}
 attacks~\cite{Perez:PromptInject22,BeurerKellner:Patterns25,Debenedetti:AgentDojo24,Zhao:ParasiticMCP26}:
 adversarially crafted content embedded in tool responses that hijacks the agent's
 plan, causing it to exfiltrate secrets, forge actions, or serve a malicious
-third party.
+third party (see Figure~\ref{fig:attack}).
 %
 Existing defences (e.g.,
 \cite{BeurerKellner:Patterns25,Debenedetti:AgentDojo24}) are mostly
