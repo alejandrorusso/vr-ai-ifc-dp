@@ -178,9 +178,10 @@ sensitive datasets without ever raising their label?}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \paragraph{LLM agents and their security landscape}
-The security risks of LLM-based agents are widely recognised, and several
-classes of countermeasure have been proposed.
-%
+The security risks of LLM-based agents are widely recognised. 
+% , and several
+% classes of countermeasure have been proposed.
+% %
 At the \emph{model level}, alignment training and preference optimisation
 attempt to make models refuse adversarial
 instructions~\cite{Chen:StruQ:25,Chen:SecAlign:25}; however, these
@@ -196,8 +197,8 @@ specific injection scenarios; and benchmarks~\cite{Liu:FormalizingPI:24,Debenede
 have systematically formalised and catalogued how all these defences are
 routinely bypassed.
 %
-None of these approaches provide no end-to-end security guarantees.
-
+% None of these approaches provide no end-to-end security guarantees.
+%
 
 \paragraph{Information Flow Control}
 IFC enforces policies like \emph{noninterference}~\cite{Goguen82}---i.e., secret inputs cannot influence public outputs.
@@ -217,25 +218,25 @@ typed API---if programs are written against the library interface, IFC is
 enforced by construction~\cite{Russo+:Haskell08,Russo:2015,DBLP:conf/ccs/AlgehedR17}.
 %
 Among these, LIO~\cite{stefan:lio,stefan:addressing-covert,Stefan:LIO:JFP16}
-brings OS-level floating-label IFC into a language-level setting---a
-combination the PI formally proved to be equally expressive as fine-grained
+brings OS-level floating-label IFC ideas into a language-level setting---a
+combination the PI formally proved to be equally expressive as 
 language-level IFC~\cite{VassenaRGRS19}. 
 %
 None of these systems targets AI agents.
 %
 The sole exception is (the unpublished) FIDES work~\cite{Costa:FIDES25}, which
-applies IFC to AI agent planners with a formal model and deterministic policy
-enforcement.
+applies IFC to AI agent planners. 
+% with a formal model and deterministic policy
+% enforcement.
 %
-However, FIDES targets a custom agent loop abstraction rather than MCP, and
-its primary focus is \emph{integrity}, i.e., preventing prompt injection from
+However, FIDES primary focuses on \emph{integrity}, i.e., preventing prompt injection from
 hijacking tool calls, while user data \emph{confidentiality} and the
 label-creep problem is not the main focus of the work. 
 
 
 \paragraph{Differential Privacy}
 Differential privacy (DP) \citep{Dwork:2006} is an emerging viable solution to
-release statistical information about a population with strong guarantees for
+release statistical information with guarantees for
 the protection of individuals' privacy.
 %
 In DP, statistical noise is added to the results of data analyses to achieve
