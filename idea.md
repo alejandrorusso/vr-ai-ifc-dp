@@ -85,3 +85,41 @@ These are the technical challenges the proposal will address:
           typical data analyses (maybe guided by synthetized examples),
           exploration of privacy-accuracy trade-offs, and visualization. This
           has not been tried before to the best of my knowledge.
+
+
+Context: 
+- Besides filesystem, Agents also need to connect to databases to fetch 
+  e.g., finantial, HR, or intellectual property information.
+- In this scenario, in traditional IFC system, the LLM will get tainted quickly 
+  when getting access to the raw tables for analysis -- again label creep
+  problem. 
+- In this light, we want a mechanism that AI agents can mine data insights without 
+  getting tainted. 
+- We propose then that AI agents craft Differential Privacy queries, so they
+  received "anonymized" insights so tainting can be avoided. 
+  
+Problem:
+- There are challenges, however, most DP tools work on their own DSL (e.g.,
+  OpenDP, DiffPrivLib, DPella).
+- Since DP entails expending privacy budget (introduce the notion) each time 
+  that you run a query, then it is very important that (i) the query is correct 
+  and runs until completion, and (ii) you know the accuracy of the results up
+  front.
+
+Approach: 
+- We propose to design a query language that encode invariants of the queries 
+  at the type-level. 
+- In that way, the LLM needs to "fight" the type-system, getting feedback
+  continously to synthetize the right query required by the user. 
+- The novelty here is to push data schemas at the type-level (here cite 
+  some haskell papers on databases and types) but that 
+  are generic enough to encode whatever data schema that comes at runtime -- 
+  for that we plan to use generic programming techniques (cite Sum-of-products
+    paper).
+- Once that is Ok, then accuracy analysis can be performed and report back. 
+
+
+
+
+
+
