@@ -158,20 +158,18 @@ agent pipelines in a practical, backwards-compatible deployment?}
 
 %
 \paragraph{Challenge 3: Privacy-bounded data consumption}
-The third challenge arises specifically from Challenge~2. 
+The third challenge is a direct consequence of Challenge~2.
 %
-To answer queries about population trends, agents are likely to access raw
-individual records in sensitive databases.
+Agents tasked with analysing sensitive databases---e.g., computing salary
+trends---must read raw records, immediately raising their label and triggering
+label creep.
 %
-Under a pure IFC system, every contact with sensitive data raises the agent's
-label to match that data's sensitivity level.
+Yet agents rarely need raw data: they need \emph{aggregate insights} such as
+averages and trends, which can be delivered with formal privacy guarantees via
+Differential Privacy (DP)~\cite{Dwork:2006}.
 %
-In this scenario, an agent quickly becomes \emph{too tainted} and cannot longer
-send results to the user, or call tools---this is the well-known
-\emph{label-creep} problem.
-%
-\emph{Can agents derive useful insights from sensitive data without ever
-getting tainted?}
+\emph{Can DP serve as a declassification primitive that lets agents query
+sensitive datasets without ever raising their label?}
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
