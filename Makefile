@@ -1,7 +1,7 @@
 all: proposal.pdf pub.pdf
 
 proposal.pdf: proposal.tex local.bib dm.bib conferences.bib kaw.cls
-	latexmk -xelatex -shell-escape proposal.tex
+	latexmk -xelatex -shell-escape -f proposal.tex
 
 pub.pdf: pub.tex russo.bib kawcv.cls
 	latexmk -xelatex pub.tex
