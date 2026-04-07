@@ -53,7 +53,7 @@
   \begin{framed}
   \centering
   \includegraphics[width=\linewidth]{attack.png}
-  \caption{Attacks on MCP-based AI agents.\label{fig:attack}}
+  \caption{Attacks on LLM-based agents with tools.\label{fig:attack}}
 \end{framed}
 \end{figure}
 %
@@ -305,7 +305,7 @@ programming-language security, data privacy, OS security, and AI systems.
 %
 Its significance rests on three novelties.
 
-\paragraph{Typed planning DSLs for AI agents}
+\paragraph{Type-safe agent planning}
 Existing AI planning frameworks (e.g., LangChain and n8n) are dynamically typed:
 plan errors are only caught at runtime.
 %
@@ -317,38 +317,35 @@ transitions and guide the LLM's plan synthesis towards correct,
 security-respecting plans.
 %
 
-\paragraph{LIO for AI agent pipelines}
-While LIO concepts has been applied to web applications and concurrent
-programs, this is the first adaptation to AI agents and MCP tool servers. 
+\paragraph{IFC for AI agent pipelines via eBPF}
+This is the first adaptation of floating-label IFC to LLM-based agents with
+tools (e.g., Claude Code, OpenCode, Codex), with a formal semantics and
+noninterference proofs.
 %
-Tool calls introduce asynchronous, multi-party information flows that require
-new label-propagation rules. 
+A key novelty is using eBPF~\cite{Vieira:eBPF20}---a sandboxed virtual machine
+inside the Linux kernel that can hook into a wide range of kernel events---to
+enforce IFC on unmodified agents, requiring no kernel patches or recompilation.
 %
-We will provide a formal semantics, and prove security gurantess (e.g., noninterference) for the resulting
-system. 
+Labels are inferred directly from POSIX permission bits, eliminating the need
+for a separate label model.
 %
-The eBPF layer adds an orthogonal novelty.
-%
-Existing IFC systems require instrumentation of the application or its language
-runtime, making them inapplicable to third-party MCP servers whose source cannot
-be modified.
-%
-eBPF~\cite{Vieira:eBPF20}---a Linux kernel mechanism that allows sandboxed
-programs to intercept system calls and network events without touching user
-space---offers a deployment path that sidesteps this barrier.
-%
-We show that kernel-level eBPF programs can enforce floating-label IFC for
-unmodified MCP servers, which is, to the best of our knowledge, the first such
-result.
+We further show that the terminal can be treated as an IFC propagation channel
+between child processes and the orchestrating agent---a treatment absent from
+prior OS-level IFC systems.
 
 \paragraph{Differential Privacy as a declassification primitive}
-Making DP the sole declassification primitive of an IFC system---instead of
-relying on ad~hoc declassification policies---is a principled solution to label
-creep that has not appeared in prior IFC literature (except for~\cite{capsule2019}). 
+To our knowledge, this is the first work to envision an agentic AI workflow
+natively integrated with a DP system.
 %
-Combined with the DPella-inspired DSL~\cite{LoboVesga:SP20,LoboVesga:OOPSLA24},
-this establishes end-to-end guarantees that agents can derive statistical
-insights without their labels being raised to the sensitivity of raw data.
+Rather than treating privacy as an afterthought, the agent interacts with
+sensitive data \emph{exclusively} through a type-safe DP
+DSL~\cite{LoboVesga:SP20,LoboVesga:OOPSLA24}, making privacy-preserving
+data analysis a first-class capability of the agent.
+%
+This also provides a principled solution to label creep: since the agent never
+reads raw sensitive records---only noisy aggregates---its label is never raised,
+and it remains free to communicate results.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Preliminary and previous results}
