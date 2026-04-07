@@ -241,10 +241,10 @@ the protection of individuals' privacy.
 %
 In DP, statistical noise is added to the results of data analyses to achieve
 varying degrees of privacy protection, with more noise providing greater privacy
-but reduced accuracy, and vice versa.
+but reduced accuracy of the reported results, and vice versa.
 %
-Successfully deploying differentially private analyses imposes the challenging
-task of \emph{finding a balance between their privacy and accuracy trade-offs}.
+% Successfully deploying differentially private analyses imposes the challenging
+% task of \emph{finding a balance between their privacy and accuracy trade-offs}.
 %
 Estimating the overall accuracy of a differentially private analysis is
 non-trivial, as it depends on both the specific task and the chosen notion of
@@ -259,21 +259,24 @@ The PI has developed principled solutions to provide accuracy guarantees
 for composite queries~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}.
 %
 To the best of our knowledge, no prior work connects LLM agent pipelines to
-differentially private workflows, leaving AI-driven data analysis without
-privacy guarantees.
+differentially private workflows. 
+% , leaving AI-driven data analysis without
+% privacy guarantees.
 
-\paragraph{WP1: Control-flow integrity}
+\paragraph{Control-flow integrity}
 Control-Flow Integrity (CFI) was introduced by Abadi et
 al.~\cite{Abadi:CFI:CCS05} as a principled defence against code-reuse
-attacks: by pre-computing a valid call graph and enforcing at runtime that
-every indirect branch follows an allowed edge, CFI prevents attackers from
-redirecting execution to arbitrary locations.
+attacks. 
+% : by pre-computing a valid call graph and enforcing at runtime that
+% every indirect branch follows an allowed edge, 
+In an nutshell, CFI prevents attackers from redirecting execution to arbitrary locations.
 %
-Solutions span the spectrum from hardware mechanisms such as Intel
+Solutions span from hardware mechanisms such as Intel
 Control-Flow Enforcement Technology~\cite{Intel:CET:2020} and shadow
 stacks, to compiler instrumentation~\cite{Tice:CompilerCFI:USENIX14} and
-OS-level enforcement~\cite{Burow:CFI:CSUR17}, and CFI is now a standard
-hardening primitive in systems software.
+OS-level enforcement~\cite{Burow:CFI:CSUR17}. 
+% , and CFI is now a standard
+% hardening primitive in systems software.
 %
 These techniques, however, target \emph{machine-level} control flow and
 reason about binary code.
@@ -285,11 +288,11 @@ return-oriented programming, yet existing CFI tools operate at the wrong
 abstraction level to address this threat.
 %
 In this proposal we take a \emph{language-based} approach: encoding agent
-plans as typed Arrow-based computation
-graphs~\cite{hughes:generalising-monads-arrows} fixes the graph topology at
-construction time, preventing injected content from introducing new
-edges---a semantic CFI for AI agents, building on the PI's prior work on
-Arrow-based IFC~\cite{Tsai:Russo:Hughes:CSF07}.
+plans as computational graphs with a fixed topology, thus 
+preventing injected content from introducing new
+edges---building on the PI's prior work on
+Arrows \cite{hughes:generalising-monads-arrows} 
+and IFC~\cite{Tsai:Russo:Hughes:CSF07}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
