@@ -63,22 +63,18 @@ infrastructure, where they act as autonomous
 agents~\cite{Yao:ReAct23,Singhal:MedPaLM23,Guha:LegalBench23,Jimenez:SWEBench24,Xia:APR:ICSE23}.
 %
 Rather than merely answering questions, these agents use tools to interact with
-the real world: querying databases, executing code, calling APIs, and
-orchestrating further sub-agents, primarily through the Model Context Protocol
-(MCP)~\cite{MCP:Anthropic24}.
+the real world: querying databases, executing code, calling APIs, reading and
+writing files, and orchestrating further sub-agents---as exemplified by
+systems such as Claude Code.
 %
-Current LLM orchestration frameworks---which connect agents to tools and
-data sources via MCP---are \emph{insecure by design}~\cite{Zhao:ParasiticMCP26}
-(see Figure~\ref{fig:attack}): they enforce only coarse-grained \emph{access
-control}, regulating which tools an agent may invoke but providing no
-guarantees on how data propagates \emph{after} access is
-granted~\cite{Sabelfeld:Myers:JSAC}.
+Current LLM agent frameworks are \emph{insecure by design}~\cite{Zhao:ParasiticMCP26} (see Figure~\ref{fig:attack}): they enforce only coarse-grained \emph{access control}, regulating which tools an agent may invoke but providing no guarantees on how data propagates \emph{after} access is
+granted.
 %
 Sensitive data retrieved by the agent can freely flow to unauthorised
 observers---a fundamental limitation of access control, which tracks \emph{who}
 may access data but not \emph{where data goes} thereafter.
 %
-Furthermore, MCP servers feed retrieved content like documents or 
+Furthermore, tool responses feed retrieved content such as documents, code, or
 web pages directly into the LLM's context without distinguishing \emph{data}
 (content to be processed) from \emph{instructions} (directives to follow).
 %
