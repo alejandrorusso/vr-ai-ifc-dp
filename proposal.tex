@@ -128,22 +128,18 @@ prompt injection attacks?}
 %
 The second challenge is to preserve \emph{confidentiality} (secrets must not
 leak) and \emph{integrity} (data must not be
-corrupted or overwritten by untrusted sources) throughout an 
+corrupted) throughout an 
 agentic loop.
 %
-Information Flow Control (IFC)~\cite{Sabelfeld:Myers:JSAC} is a principled
-approach to both properties: rather than merely restricting \emph{access}, it
-tracks \emph{where data goes} after access is granted, enforcing end-to-end
-security policies.
-%
-In IFC, every piece of data carries a \emph{label}---a tag denoting its
+IFC~\cite{Sabelfeld:Myers:JSAC} is a principled
+approach to both properties, where  
+every piece of data carries a \emph{label}---a tag denoting its
 sensitivity and integrity level (e.g., \emph{secret}/\emph{public} or
-\emph{trusted}/\emph{untrusted})---which the system propagates and enforces
-automatically as data flows through computations.
+\emph{trusted}/\emph{untrusted})---that is get propagated and enforced
+in a mandatory fashion as data flows through computations.
 %
-Applying this discipline to AI agent pipelines raises three difficulties.
-%
-First, \emph{label creep}: once an agent reads a sensitive file its label is
+Applying this discipline to AI agent pipelines raises three difficulties: 
+(i) \emph{label creep}: once an agent reads a sensitive file its label is
 raised, and it can no longer write outputs or invoke further tools at
 lower-sensitivity destinations---quickly becoming too tainted to produce any
 output.
@@ -160,7 +156,7 @@ data they handle, leaving agents overprivileged by
 default~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}.
 %
 \emph{Can IFC be applied to AI agent pipelines without modifying existing code,
-mitigating label creep, and without requiring a new trust model?}
+mitigating label creep, and without requiring explicit label assignment?}
 
 %
 \paragraph{Challenge 3: Privacy-bounded data consumption}
