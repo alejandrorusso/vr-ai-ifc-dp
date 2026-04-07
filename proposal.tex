@@ -508,17 +508,17 @@ functional abstraction for data-flow graphs, the same computational model
 underlying tools such as n8n and
 LangGraph\footnote{\tiny \url{https://n8n.io} (n8n)
 \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---are the right
-foundation for a secure agent planning DSL. 
-% , implemented in Haskell.
+foundation for a secure agent planning language, which we implement in
+Haskell---the programming language in which Arrows were originally conceived.
 %
-intuitively, a value of type \mintinline{haskell}{arrow a b} represents a \emph{box} that
+Intuitively, a value of type \mintinline{haskell}{arrow a b} represents a \emph{box} that
 accepts an input of type \mintinline{haskell}{a} and produces an output of
 type \mintinline{haskell}{b}; the concrete datatype substituted for
 \mintinline{haskell}{arrow} determines the effects and capabilities of each
 box (e.g., our proposed \mintinline{haskell}{LLM} datatype would capture the
 ability to invoke a language model and tools).
 %
-The two core combinators---\mintinline{haskell}{arr} for lifting pure
+The two core primitives---\mintinline{haskell}{arr} for lifting pure
 functions and \mintinline{haskell}{(>>>)} for sequential
 composition---together with \mintinline{haskell}{(|||)} for typed branching,
 suffice to encode the principled design patterns for prompt-injection-resistant
