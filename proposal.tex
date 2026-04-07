@@ -707,6 +707,13 @@ the suite introduced by Liu et al.~\cite{Liu:FormalizingPI:24}.
      (bbox) {};
 \node[font=\scriptsize, text=black!55, below=0.5cm of clf, align=center]
      {output constrained to\\[-2pt]\texttt{\{Urgent, Routine, Spam\}}};
+\node[font=\tiny, text=red!70!black,
+      above=0.7cm of clf, align=center] (injC)
+     {\itshape injected content};
+\draw[redarr] (injC.south) -- (clf.north);
+\node[font=\tiny, text=green!50!black,
+      above=0.05cm of injC, align=center]
+     {values may change; edges cannot~($\times$)};
 \end{tikzpicture}}%
 \par\smallskip
 \begin{minipage}[t]{0.47\linewidth}
@@ -818,7 +825,7 @@ plan = arr (\e -> ("Is this email spam?", e))
 %
 
 \paragraph{Attacker model.}
-Modern AI coding assistants operate as long-running \emph{agentic loops}: they receive a
+Modern AI coding assistants operate on \emph{agentic loops}: they receive a
 task, issue tool calls (read files, execute shell commands, write outputs),
 observe the results, and iterate until the task is complete.
 %
