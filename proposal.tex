@@ -603,10 +603,15 @@ The set of reachable handlers is fully determined by the plan's type---no
 injected value can introduce a handler outside that set.
 
 Finally, Figure~\ref{fig:dual} sketches our proposed \mintinline{haskell}{quarantine}
-primitive for the \emph{dual-LLM} pattern~\cite{BeurerKellner:Patterns25}.
+primitive for the \emph{dual-LLM} pattern~\cite{BeurerKellner:Patterns25}:
 %
-The primitive would run a prompt against potentially adversarial input in a
-sandboxed LLM call and return an \mintinline{haskell}{Untrusted b} value,
+\begin{minted}[fontsize=\small]{haskell}
+quarantine :: LLM (Prompt, a) (Untrusted b)
+\end{minted}
+%
+The primitive runs a trusted \mintinline{haskell}{Prompt} against potentially
+adversarial input \mintinline{haskell}{a} in a sandboxed LLM call and returns
+an \mintinline{haskell}{Untrusted b} value,
 whose \mintinline{haskell}{content} field is the (untrusted) LLM result and
 whose \mintinline{haskell}{description} is a trusted summary derived solely
 from the programmer-controlled \mintinline{haskell}{Prompt}.
@@ -631,23 +636,26 @@ restrict the interface between sandboxed and trusted components to
 structured, instruction-free data.
 
 \paragraph{Task 1.1: Formalization and CFI guarantees}
-We will define a core calculus for the Arrow-based DSL, giving a
-denotational semantics to the combinators
-\mintinline{haskell}{arr}, \mintinline{haskell}{>>>}, and
-\mintinline{haskell}{|||}, and formalising the CFI theorem sketched above.
+We will define a core calculus for the Arrow-based DSL. 
+% , giving a
+% denotational semantics to the combinators
+% \mintinline{haskell}{arr}, \mintinline{haskell}{>>>}, and
+% \mintinline{haskell}{|||}, and formalising the CFI theorem sketched above.
+% %
+% The central result to be proved is that the topology of the computation graph
+% is an invariant, i.e., it is independent of the values flowing
+% through it.
 %
-The central result to be proved is that the topology of the computation graph
-is an invariant, i.e., it is independent of the values flowing
-through it.
-%
-We will further investigate what additional combinators (e.g., loops,
-parallel composition) can be admitted without breaking the CFI guarantee.
+We will further investigate what additional Arrows primitives (e.g., arrow 
+application) can be admitted without breaking the CFI guarantee.
 
 \paragraph{Task 1.2: Encoding prompt-injection-resistant design patterns} We
 will show that the patterns identified in~\cite{BeurerKellner:Patterns25} are
-expressible as typed primitives in our DSL. Consequently, any plan written
-using our arrow interface will mitigate injection
-attacks~\cite{Perez:PromptInject22,Liu:FormalizingPI:24}.
+expressible as typed primitives in our DSL. 
+% 
+% Consequently, any plan written
+% using our arrow interface will mitigate injection
+% attacks~\cite{Perez:PromptInject22,Liu:FormalizingPI:24}.
 %
 % The security argument is a semantic analogue of control-flow
 % integrity~\cite{Abadi:CFI:CCS05,Burow:CFI:CSUR17}: just as CFI prevents
