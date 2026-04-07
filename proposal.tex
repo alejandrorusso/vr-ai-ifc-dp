@@ -143,22 +143,24 @@ automatically as data flows through computations.
 %
 Applying this discipline to AI agent pipelines raises three difficulties.
 %
-First, the LLM acts as an \emph{intermediary}: it receives inputs
-from multiple principals---users, system prompts, and tool
-responses---each carrying different sensitivity levels, and freely mixes them
-in its outputs; IFC must therefore propagate labels dynamically across every
-LLM invocation.
+First, \emph{label creep}: once an agent reads a sensitive file its label is
+raised, and it can no longer write outputs or invoke further tools at
+lower-sensitivity destinations---quickly becoming too tainted to produce any
+output.
 %
-Second, the \emph{trust level of tool outputs is not statically known}: a
-tool may return benign data or adversarially crafted content, so labels
-must be assigned and enforced at runtime at the tool boundary.
+% A \emph{floating-label} IFC system~\cite{stefan:lio} is needed, one that
+% manages label escalation carefully so that agents can still make progress.
+% %
+Second, \emph{deployment without code modification or tools recompilation}---a
+backwards-compatible enforcement mechanism is desirable. 
 %
-Third, today's agent deployments lack any \emph{trust model}: tools do not
-declare the sensitivity of the data they handle, leaving agents
-overprivileged by default~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}.
+Third, \emph{lack of label assignment}: today's agent deployments provide no
+mechanism for assigning labels---tools do not declare the sensitivity of the
+data they handle, leaving agents overprivileged by
+default~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}.
 %
-\emph{Can IFC be adapted to AI agent pipelines to provide provable
-confidentiality and integrity across the LLM--tool boundary?}
+\emph{Can IFC be applied to AI agent pipelines without modifying existing code,
+mitigating label creep, and without requiring a new trust model?}
 
 %
 \paragraph{Challenge 3: Privacy-bounded data consumption}
