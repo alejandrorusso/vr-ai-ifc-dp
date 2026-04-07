@@ -300,20 +300,21 @@ and IFC~\cite{Tsai:Russo:Hughes:CSF07}.
 \label{sec:novelty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This project opens a new research direction at the intersection of
+This project lays at the intersection of
 programming-language security, data privacy, OS security, and AI systems.
 %
-Its significance rests on three interlocking novelties.
+Its significance rests on three novelties.
 
 \paragraph{Typed planning DSLs for AI agents}
-Existing AI planning frameworks (e.g., LangChain and n8n) are dynamically typed
-and unverified.
+Existing AI planning frameworks (e.g., LangChain and n8n) are dynamically typed:
+plan errors are only caught at runtime.
 %
-We introduce the first Arrow-based planning domain-specific language (DSL) that (i)~is expressive enough
-to encode all prompt-injection-resistant design patterns from~\cite{BeurerKellner:Patterns25} and (ii)~uses type errors as a
-two-sided feedback signal: they statically reject wrongly crafted plan transitions
-\emph{and} guide the LLM's plan synthesis towards correct, security-respecting
-plans.
+We introduce the first Arrow-based domain-specific language (DSL) for agent
+planning that (i)~is expressive enough to encode prompt-injection-resistant
+design patterns from recent work~\cite{BeurerKellner:Patterns25} and (ii)~uses type errors
+as a two-sided feedback signal: they statically reject wrongly crafted plan
+transitions and guide the LLM's plan synthesis towards correct,
+security-respecting plans.
 %
 
 \paragraph{LIO for AI agent pipelines}
