@@ -136,21 +136,21 @@ automatically as data flows through computations.
 Applying this discipline to agents raises three difficulties.
 %
 First, the LLM acts as an \emph{intermediary}: it receives inputs
-from multiple principals---users, system prompts, and MCP tool
+from multiple principals---users, system prompts, and tool
 responses---each carrying different sensitivity levels, and freely mixes them
 in its outputs; IFC must therefore propagate labels dynamically across every
 LLM invocation.
 %
-Second, the \emph{trust level of tool outputs is not statically known}: an
-MCP server may return benign data or adversarially crafted content, so labels
+Second, the \emph{trust level of tool outputs is not statically known}: a
+tool may return benign data or adversarially crafted content, so labels
 must be assigned and enforced at runtime at the tool boundary.
 %
-Third, today's MCP deployments lack any \emph{trust model}: servers do not
+Third, today's agent deployments lack any \emph{trust model}: tools do not
 declare the sensitivity of the data they handle, leaving agents
 overprivileged by default~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}.
 %
 \emph{Can IFC be adapted to AI agent pipelines to provide provable
-confidentiality and integrity across the LLM--MCP boundary?}
+confidentiality and integrity across the LLM--tool boundary?}
 
 %
 \paragraph{Challenge 3: Privacy-bounded data consumption}
