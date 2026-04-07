@@ -405,7 +405,9 @@ but also useful.
 
 %%% TO KEEP
 
-\subsection{Control-flow integrity}
+\subsection{Theory and method}
+
+\subsubsection{WP1: Control-flow integrity}
 
 % ── Figure 1: Arrow-based planning DSL ────────────────────────────────────
 \begin{figure*}[b]
@@ -786,7 +788,7 @@ plan = arr (\e -> ("Is this email spam?", e))
 \caption{LLM-as-classifier and dual-LLM design patterns.\label{fig:patterns}}
 \end{figure*}
 
-\subsection{WP2: Confidentiality and integrity of data}
+\subsubsection{WP2: Confidentiality and integrity of data}
 %
 
 \paragraph{Attacker model.}
@@ -1017,7 +1019,7 @@ file-system-intensive agent tasks.
 
 
 
-\subsection{WP3: Privacy-bounded data consumption}
+\subsubsection{WP3: Privacy-bounded data consumption}
 %
 Beyond the filesystem, AI agents increasingly connect to databases containing
 sensitive health records, HR data, or finantial information.
@@ -1062,21 +1064,38 @@ risking the privacy of individuals in the dataset.
 %
 This imposes two stringent requirements on any query an agent submits: (i)~it
 must be \emph{correct and run to completion}---a failed or retried query might
-waste budget without delivering complete results; and (ii)~the \emph{accuracy}
-of the noisy answer must be known \emph{before} the query is issued, so the
-agent can decide whether the result will be useful enough to justify the
-privacy cost (The PI's prior work advanced accuracy estimations
-\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}). 
+waste budget without delivering complete results; and (ii)~it is highly
+convenient to know the \emph{accuracy} of the noisy answer \emph{before}
+committing the query, so the agent can make an informed cost--benefit
+decision about whether the result will be useful enough to justify the
+privacy expenditure---a problem directly targeted by the PI's prior
+work~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}.
 %
 
 \paragraph{A type-safe DP query DSL}
 %
 To address these challenges, we propose a \emph{type-safe DP query DSL} in
-which query invariants are encoded directly in the type system---for example, a
-filter on a \texttt{department} column can only be instantiated with a value
-drawn from the statically known set of departments (\texttt{"HR"},
-\texttt{"Finance"}, \texttt{"Legal"}, \ldots); passing an invalid category is a
-type error, not a runtime failure that silently wastes privacy budget.
+which query invariants are encoded directly in the type system:
+%
+\begin{CompactItemizeee}
+  \item \emph{Valid categorical values}:
+    any column declared as an enumeration carries its admissible values as a
+    type-level list, and every use or reference to that column is statically
+    required to be an element of that list. 
+
+  \item \emph{Numeric range narrowing}:
+    integer columns carry their lower and upper bounds as type-level
+    parameters; when a filter is applied, the type system automatically
+    \emph{narrows} the bound---thus potentially
+    reducing the noise the DSL must add, e.g.,
+    \mintinline{haskell}{salary :: IntTy 0 1000000} becomes
+    \mintinline{haskell}{salary :: IntTy 50001 1000000} after
+    \mintinline{haskell}{filter (salary `gt` 50000)}.
+
+  \item \emph{Column existence}:
+    a projection or aggregation can only reference columns that are present
+    in the current schema.
+\end{CompactItemizeee}
 %
 In the spirit of Milner's dictum that ``well-typed programs cannot go
 wrong''~\cite{Milner:TypePoly:78}, a well-typed query is, by construction, a
@@ -1089,152 +1108,65 @@ WP1.
 %
 Following the tradition of type-safe database
 libraries~\cite{leijen:haskelldb,haskelldb-improved}, we lift data schemas to
-the type level; our departure is that schemas are \emph{generic}---using the
-sum-of-products representation~\cite{deVries:SOP:WGP14}, type-class instances
-are derived automatically for any schema supplied at runtime time, without
-sacrificing static safety.
+the type level; our departure is that schemas are \emph{generic}---where we propose 
+to use the
+sum-of-products representation~\cite{deVries:SOP:WGP14} for any schema supplied at runtime time
+but without sacrificing static safety.
 %
 Once a well-typed query is synthesised and executed, the DSL computes accuracy
 (e.g., using PI's  work~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}) for the noisy
 result and reports them to the agent before any privacy budget is committed,
 allowing the agent to make an informed cost--benefit decision.
 %
+
 To the best of our knowledge, no prior work connects AI agent pipelines with
-differentially private data analysis: this work is the first to treat DP
-releases as first-class operations within an agentic workflow, providing
-end-to-end privacy guarantees from the user's query all the way to the
-statistical result.
+differentially private data analysis. 
 %
 In this light, we must design novel \emph{agent skills}---specialised tool
 interfaces and structured prompts that teach the agent the DP query
 workflow---and develop \emph{prompt engineering} strategies that guide the LLM
 through schema inspection, query synthesis, budget reasoning, and accuracy
-evaluation, without requiring DP expertise from the end user.
+evaluation, without requiring DP expertise from the user.
 
 \paragraph{Task~3.1: Type-safe DP query DSL}
-We will design a query DSL in which invariants such as sensitivity, privacy
-budget consumption, and schema compatibility are enforced at the type level.
-%
-Building on DPella~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}, the DSL will
-match DPella's expressive power while supporting generic data schemas via the
-sum-of-products representation~\cite{deVries:SOP:WGP14}, so that type-class
-instances are derived automatically for any schema supplied at deployment
-time.
+We will design the type-safe DSL to match DPella's~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}
+expressive power while supporting generic data schemas via the
+sum-of-products representation~\cite{deVries:SOP:WGP14}. 
 
 \paragraph{Task~3.2: LLM agent skills for DP query synthesis}
-We will develop a set of \emph{LLM agent skills}---structured prompting
-protocols and tool interfaces---that enable an agent to write DP queries in
+We will develop a set of \emph{LLM agent skills} 
+to enable an agent to write DP queries in
 the DSL of Task~3.1, reason about privacy budget expenditure, and explore
-privacy--accuracy trade-offs before committing to a query.
+privacy--accuracy trade-offs. 
 %
-The type checker serves as the correctness oracle: type errors provide
+Type errors will provide
 the agent with actionable feedback to iteratively refine its query.
 
 \paragraph{Task~3.3: Evaluation on standard statistical analyses}
 We will evaluate the combined system on a suite of standard univariate and
-multivariate analyses---histograms, cumulative distribution functions,
-contingency tables, and cross-tabulations---using synthetic sensitive
-datasets (census, healthcare records).
+multivariate analyses, e.g., histograms, cumulative distribution functions,
+contingency tables, and cross-tabulations. 
 %
 We will measure query correctness, privacy budget utilisation, and
 accuracy of the reported results against non-private baselines.
 
 
 
-\subsection{Work packages}
+\subsection{Time plan and implementation}
 
-\paragraph{WP1 --- Typed planning DSL (Goal~1, years 1--3).}
-We will formalise an Arrow-based DSL for AI agent planning.
-\emph{Task~1.1} defines the core calculus: Arrow combinators for
-sequential composition, conditionals, loops, and tool invocations, together
-with a type system that encodes data provenance.
-\emph{Task~1.2} encodes the prompt-injection-resistant design patterns from
-~\cite{BeurerKellner:Patterns25} as typed DSL schemas, and proves
-that ill-typed plans cannot arise from prompt injection.
-\emph{Task~1.3} implements a prototype in Haskell, integrates it with a
-live MCP client, and evaluates how type errors guide LLM plan synthesis.
-\emph{Task~1.4} mechanises the type-safety and noninterference proofs in Agda.
+\subsection{Project organization}
 
-\paragraph{WP2 --- Floating-label IFC for MCP (Goal~2, years 1--3).}
-We will build a floating-label IFC harness for AI agent tool calls.
-\emph{Task~2.1} extends the LIO semantics with MCP tool-call primitives
-and defines label-propagation rules for tool inputs and outputs.
-\emph{Task~2.2} proves noninterference for the extended system and encodes
-the FIDES trust model~\cite{Costa:FIDES25} as a derived instance.
-\emph{Task~2.3} implements DC-label~\cite{Stefan:2011} policies over
-MCP servers, providing file-system-like permissions that practitioners can
-understand and configure.
-\emph{Task~2.4} develops an eBPF prototype that enforces label monotonicity
-at the OS level for existing MCP servers without source modification.
-
-\paragraph{WP3 --- DP as declassification (Goal~3, years 2--4).}
-We will connect AI agents to a type-safe DP query engine.
-\emph{Task~3.1} designs a DP query DSL inspired by
-DPella~\cite{LoboVesga:SP20} and sensitivity by
-parametricity~\cite{LoboVesga:OOPSLA24}, where sensitivity and privacy
-budget are tracked at the type level.
-\emph{Task~3.2} integrates the DP DSL with the LIO harness from WP2,
-formally proving that every DP release acts as a sound
-declassification that lowers the current label by a justified amount.
-\emph{Task~3.3} engineers a DP workflow prompt system: the LLM is given a
-structured protocol---schema analysis, query synthesis, privacy-accuracy
-trade-off exploration---to generate correct DP queries without prior DP
-training.
-\emph{Task~3.4} evaluates the combined system on realistic sensitive datasets
-(synthetic census, healthcare records) and measures privacy-accuracy outcomes.
-
-\paragraph{WP4 --- Integration, evaluation, and dissemination (years 3--4).}
-\emph{Task~4.1} integrates the DSL (WP1), the IFC harness (WP2), and the DP
-engine (WP3) into a unified open-source framework.
-\emph{Task~4.2} evaluates end-to-end security through red-teaming exercises
-and formal attacker models.
-\emph{Task~4.3} produces peer-reviewed publications, open-source artefacts,
-and a short-course at Chalmers on security for AI systems.
-
-\subsection{Timeline}
-
-\noindent\begin{tabular}{lp{7cm}}
-\textbf{Year 1} & WP1 (Tasks 1.1--1.2), WP2 (Tasks 2.1--2.2): core formalisms, Arrow DSL calculus, LIO extension, noninterference proofs. \\[2pt]
-\textbf{Year 2} & WP1 (Tasks 1.3--1.4), WP2 (Tasks 2.3--2.4), WP3 (Task 3.1): Haskell prototype, eBPF enforcement, DP query DSL. \\[2pt]
-\textbf{Year 3} & WP3 (Tasks 3.2--3.3), WP4 (Task 4.1): DP-as-declassification proofs, DP prompt workflows, system integration. \\[2pt]
-\textbf{Year 4} & WP3 (Task 3.4), WP4 (Tasks 4.2--4.3): evaluation on sensitive datasets, red-teaming, publications, open-source release. \\
-\end{tabular}
-
-\subsection{Equipment}
+\section{Equipment}
 
 No special equipment is needed beyond standard computing resources.
 
-\subsection{Need for research infrastructure}
+\section{Need for research infrastructure}
 
 No special research infrastructure is required.
 
-\subsection{International and national collaboration}
+\section{International and national collaboration}
 
-The proposal builds on established international collaborations.
-The PI has co-authored with \textbf{Marco Gaboardi} (Boston University,
-USA) on DPella and related DP work~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,
-LoboVesga:OOPSLA24,Russo:CCS25}, and with \textbf{Deian Stefan} (UC San
-Diego, USA) on LIO, COWL, and Hails.
-These collaborators will serve as informal advisors and co-authors on
-WP2 and WP3 outputs.
-Nationally, the PI collaborates with colleagues in the \emph{Formal Methods}
-and \emph{Security} divisions at Chalmers, and with the Swedish DP research
-community, providing access to expertise in verification and privacy.
-
-\subsection{Independent line of research}
-
-This project constitutes an independent research programme distinct from
-the PI's earlier work on LIO and DPella in three ways.
-First, the \emph{target domain}---AI agent pipelines---is new; prior IFC and
-DP research did not address LLM-generated plans or MCP tool calls.
-Second, the \emph{combination} of IFC and DP as a unified system, where DP
-releases serve as the sole principled declassification mechanism, is a novel
-theoretical contribution with no precedent in either community.
-Third, the \emph{deployment strategy} via eBPF extends formal security
-guarantees to unmodified, production MCP servers, which represents a genuine
-advance in systems security research.
-The PI is the scientific leader and initiator of all three strands.
-
+\section{Independent line of research}
 
 \clearpage
 \onecolumn
