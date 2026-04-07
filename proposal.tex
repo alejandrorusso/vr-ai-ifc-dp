@@ -489,32 +489,34 @@ plan = findMarkdownFiles
 We consider a \emph{single-invocation} threat model: the user issues a
 request, a fresh LLM context executes and synthesises a plan, and the plan executes.
 %
-The attacker controls the \emph{data} that flows through the plan---e.g.,
-the contents of files read by tool calls---but does not control the initial user request or the plan
+The attacker controls the \emph{data} that flows through the plan 
+% ---e.g., the contents of files read by tool calls---
+but does not control the initial user request or the plan
 synthesis step.
 %
 The threat we address is therefore: can adversarially crafted data values,
 encountered \emph{during execution},
-cause the agent to deviate its plan?
+cause the agent to deviate from its plan?
 %
 
-The first challenge is that AI planning is inherently data-dependent: agents
-branch and call tools based on LLM outputs, opening the door to
-prompt-injection-induced control-flow hijacking at execution time.
+% The first challenge is that AI planning is inherently data-dependent: agents
+% branch and call tools based on LLM outputs, opening the door to
+% prompt-injection-induced control-flow hijacking at execution time.
 %
 Our key insight is that \emph{Arrows}~\cite{hughes:generalising-monads-arrows}---a
 functional abstraction for data-flow graphs, the same computational model
 underlying tools such as n8n and
 LangGraph\footnote{\tiny \url{https://n8n.io} (n8n)
 \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---are the right
-foundation for a secure agent planning DSL, implemented in Haskell.
+foundation for a secure agent planning DSL. 
+% , implemented in Haskell.
 %
-In an arrow, \mintinline{haskell}{arrow a b} represents a \emph{box} that
+intuitively, a value of type \mintinline{haskell}{arrow a b} represents a \emph{box} that
 accepts an input of type \mintinline{haskell}{a} and produces an output of
 type \mintinline{haskell}{b}; the concrete datatype substituted for
 \mintinline{haskell}{arrow} determines the effects and capabilities of each
 box (e.g., our proposed \mintinline{haskell}{LLM} datatype would capture the
-ability to invoke a language model, tools, and MCP servers).
+ability to invoke a language model and tools).
 %
 The two core combinators---\mintinline{haskell}{arr} for lifting pure
 functions and \mintinline{haskell}{(>>>)} for sequential
