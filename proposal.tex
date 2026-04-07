@@ -829,18 +829,13 @@ Modern AI coding assistants operate on \emph{agentic loops}: they receive a
 task, issue tool calls (read files, execute shell commands, write outputs),
 observe the results, and iterate until the task is complete.
 %
-We consider three sources of misbehaviour that can violate confidentiality
-or integrity of data during such a loop:
-(i)~\emph{prompt injection};
-(ii)~\emph{hallucination}---the LLM confidently issuing a tool call with
-incorrect arguments that reads or overwrites the wrong files; and
-(iii)~\emph{wrongly crafted instructions}---a user or orchestrating system
-that, intentionally or by mistake, directs the agent to perform operations
-that violate another user's data boundaries.
+Such loops are susceptible to several sources of misbehaviour---%
+\emph{prompt injection}, \emph{hallucination}, and \emph{wrongly crafted
+instructions}---all of which can violate confidentiality or integrity.
 %
-All three can cause the agent's tool calls to violate \emph{confidentiality}
-(data flows to a less-sensitive destination) or \emph{integrity} (data is
-modified by an insufficiently trusted source).
+% All three can cause the agent's tool calls to violate \emph{confidentiality}
+% (data flows to a less-sensitive destination) or \emph{integrity} (data is
+% modified by an insufficiently trusted source).
 %
 We assume the \emph{LLM provider is trusted}: sending data to the model for
 inference does not leak it, and the model itself does not deliberately
