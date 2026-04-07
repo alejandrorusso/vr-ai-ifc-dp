@@ -260,7 +260,7 @@ To the best of our knowledge, no prior work connects LLM agent pipelines to
 differentially private workflows, leaving AI-driven data analysis without
 privacy guarantees.
 
-\paragraph{Control-flow integrity}
+\paragraph{WP1: Control-flow integrity}
 Control-Flow Integrity (CFI) was introduced by Abadi et
 al.~\cite{Abadi:CFI:CCS05} as a principled defence against code-reuse
 attacks: by pre-computing a valid call graph and enforcing at runtime that
@@ -786,7 +786,7 @@ plan = arr (\e -> ("Is this email spam?", e))
 \caption{LLM-as-classifier and dual-LLM design patterns.\label{fig:patterns}}
 \end{figure*}
 
-\subsection{Confinement and integrity of data}
+\subsection{WP2: Confidentiality and integrity of data}
 %
 
 \paragraph{Attacker model.}
@@ -1017,37 +1017,129 @@ file-system-intensive agent tasks.
 
 
 
-\paragraph{Goal 3: Privacy-bounded data consumption.}
-The third challenge arises specifically from Goal 2: to answer queries about
-population trends, agents are likely to access raw individual records in
-sensitive databases.
+\subsection{WP3: Privacy-bounded data consumption}
 %
-Under a pure IFC system, this immediately raises the agent's label to the
-data's sensitivity level---the well-known \emph{label-creep}
-problem---rendering the agent unable to communicate any findings to
-lower-clearance observers.
+Beyond the filesystem, AI agents increasingly connect to databases containing
+sensitive health records, HR data, or finantial information.
 %
-The key insight is that agents rarely need raw records: what they need are
-\emph{aggregate statistics and trends}, which can be computed and delivered
-safely without ever exposing individual data to the agent.
+When tasked with analysing such data---e.g., computing salary trends---an agent
+operating under a pure IFC system must read raw table rows, immediately raising
+its label to match the sensitivity of records. 
 %
-We will therefore interpose a DP layer between agents and sensitive datasets:
-agents query data exclusively through a type-safe DP query DSL building on
-the PI's DPella system~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21} and the
-PI's sensitivity-by-parametricity technique~\cite{LoboVesga:OOPSLA24},
-receiving only calibrated, privacy-protected statistical insights---and never
-getting tainted by raw sensitive data.
+The agent quickly becomes \emph{too tainted} to communicate any result to a
+lower-clearance destination---thus hitting the \emph{label creep} problem.
 %
-This makes the DP release the \emph{declassification primitive} of the IFC
-system, providing a principled and formally justified solution to label
-creep in AI pipelines.
+The key observation is that agents seldom need raw records: they need
+\emph{aggregate insights}---averages, trends, counts---which can be delivered
+without ever exposing raw data.
+%
+We therefore propose that agents access sensitive databases exclusively through
+Differential Privacy queries---thus protecting privacy of individuals. 
+%
+% The agent crafts a DP query; the DSL adds calibrated noise and returns an
+% \emph{anonymised} statistical result whose IFC label is $\bot$---no taint is
+% incurred.
+%
+This makes the DP release \emph{a declassification primitive} of the proposed IFC
+system.
+
+Realising this vision poses concrete challenges.
+%
+Most existing DP tools (e.g., OpenDP~\cite{OpenDP:2023}, Tumult Analytics~\cite{TumultAnalytics:VLDB23}, DiffPrivLib~\cite{Holohan:DiffPrivLib:19}, and DPella~\cite{LoboVesga:SP20}) expose their own
+DSL. 
+%
+These DSLs are sufficiently niche that current LLMs have seen little
+or no training data for them, thus often making LLM-generated DP queries
+syntactically or semantically incorrect~\cite{Gu:DSLCodeGen:TOSEM25,Joel:LRPLSurvey:TOSEM25}.
+%
+More fundamentally, DP enforces a finite \emph{privacy budget}:
+intuitively, each query ``leaks'' a small, bounded amount of information about
+individuals in the database, and the budget tracks the cumulative leakage
+across all queries.
+%
+Once the budget is exhausted, no further queries can be answered without
+risking the privacy of individuals in the dataset.
+%
+This imposes two stringent requirements on any query an agent submits: (i)~it
+must be \emph{correct and run to completion}---a failed or retried query might
+waste budget without delivering complete results; and (ii)~the \emph{accuracy}
+of the noisy answer must be known \emph{before} the query is issued, so the
+agent can decide whether the result will be useful enough to justify the
+privacy cost (The PI's prior work advanced accuracy estimations
+\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}). 
+%
+
+\paragraph{A type-safe DP query DSL}
+%
+To address these challenges, we propose a \emph{type-safe DP query DSL} in
+which query invariants are encoded directly in the type system---for example, a
+filter on a \texttt{department} column can only be instantiated with a value
+drawn from the statically known set of departments (\texttt{"HR"},
+\texttt{"Finance"}, \texttt{"Legal"}, \ldots); passing an invalid category is a
+type error, not a runtime failure that silently wastes privacy budget.
+%
+In the spirit of Milner's dictum that ``well-typed programs cannot go
+wrong''~\cite{Milner:TypePoly:78}, a well-typed query is, by construction, a
+correct query.
+%
+When an LLM synthesises a DP query, it receives continuous feedback from the
+type checker; type errors act as a structured signal that guides the model
+towards a valid query, analogously to how type errors guide plan synthesis in
+WP1.
+%
+Following the tradition of type-safe database
+libraries~\cite{leijen:haskelldb,haskelldb-improved}, we lift data schemas to
+the type level; our departure is that schemas are \emph{generic}---using the
+sum-of-products representation~\cite{deVries:SOP:WGP14}, type-class instances
+are derived automatically for any schema supplied at runtime time, without
+sacrificing static safety.
+%
+Once a well-typed query is synthesised and executed, the DSL computes accuracy
+(e.g., using PI's  work~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}) for the noisy
+result and reports them to the agent before any privacy budget is committed,
+allowing the agent to make an informed cost--benefit decision.
+%
+To the best of our knowledge, no prior work connects AI agent pipelines with
+differentially private data analysis: this work is the first to treat DP
+releases as first-class operations within an agentic workflow, providing
+end-to-end privacy guarantees from the user's query all the way to the
+statistical result.
+%
+In this light, we must design novel \emph{agent skills}---specialised tool
+interfaces and structured prompts that teach the agent the DP query
+workflow---and develop \emph{prompt engineering} strategies that guide the LLM
+through schema inspection, query synthesis, budget reasoning, and accuracy
+evaluation, without requiring DP expertise from the end user.
+
+\paragraph{Task~3.1: Type-safe DP query DSL}
+We will design a query DSL in which invariants such as sensitivity, privacy
+budget consumption, and schema compatibility are enforced at the type level.
+%
+Building on DPella~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}, the DSL will
+match DPella's expressive power while supporting generic data schemas via the
+sum-of-products representation~\cite{deVries:SOP:WGP14}, so that type-class
+instances are derived automatically for any schema supplied at deployment
+time.
+
+\paragraph{Task~3.2: LLM agent skills for DP query synthesis}
+We will develop a set of \emph{LLM agent skills}---structured prompting
+protocols and tool interfaces---that enable an agent to write DP queries in
+the DSL of Task~3.1, reason about privacy budget expenditure, and explore
+privacy--accuracy trade-offs before committing to a query.
+%
+The type checker serves as the correctness oracle: type errors provide
+the agent with actionable feedback to iteratively refine its query.
+
+\paragraph{Task~3.3: Evaluation on standard statistical analyses}
+We will evaluate the combined system on a suite of standard univariate and
+multivariate analyses---histograms, cumulative distribution functions,
+contingency tables, and cross-tabulations---using synthetic sensitive
+datasets (census, healthcare records).
+%
+We will measure query correctness, privacy budget utilisation, and
+accuracy of the reported results against non-private baselines.
 
 
-
-
-The project runs for four years, employs two PhD students and one postdoc,
-and is structured into four work packages (WPs) that correspond to the
-three technical goals plus integration and dissemination.
 
 \subsection{Work packages}
 
