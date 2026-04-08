@@ -120,9 +120,12 @@ which an agent decides, step by step, which tools to call---is inherently
 data-dependent: agents branch, loop, and call tools based on LLM outputs,
 opening the door to prompt-injection-induced control-flow hijacking.
 %
+%
+%
 \emph{Can we design a planning language where control flow is not affected by
 prompt injection attacks?}
 %
+
 
 \paragraph{Challenge 2: Confidentiality and integrity of data}
 %
@@ -386,32 +389,22 @@ A recent result~\cite{Russo:CCS25} advances the state of the art in accuracy-awa
 DP queries, ensuring that AI-derived statistical insights are not only private
 but also useful.
 %
-% \paragraph{Preliminary results} The PI has already produced concrete
-% artefacts for all three challenges. % For Challenge~1, a Haskell prototype
-% (\texttt{arrow-ai}) implements an Arrow-based planning DSL in which agent
-% plans are typed computation graphs composed with the \texttt{>>>} combinator;
-% tool invocations are drawn from a GADT of commands, so injected content
-% cannot introduce plan transitions that were not present at construction time.
-% % For Challenge~2, \texttt{mcp-ifc} provides a Volpano-Smith-style type
-% system for AI agent programs: types carry security labels, the program
-% counter tracks implicit flows, and LLM calls are distinguished from MCP tool
-% calls by distinct typing rules. % A key novelty is the \emph{Shield String}
-% type: tool and LLM outputs are opaque by default and can only be passed to
-% further tools or sanitised before consumption, blocking prompt injection at
-% the type level. % For the eBPF deployment strategy, \texttt{ai-labels} is a
-% working BPF-LSM prototype that attaches to \texttt{file\_open} and
-% \texttt{file\_permission} kernel hooks to enforce monotone label joins on
-% reads and write-blocking when the process label exceeds the target file's
-% label---without touching user-space MCP servers; the test suite passes 11/11
-% cases on a QEMU Linux VM.
+\paragraph{Preliminary results}
+The proposal is motivated by very initial prototypes that the PI has built
+for all three challenges.
 %
+These artefacts confirm the technical feasibility and challenges of the 
+proposed approaches.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Project description} \label{sec:description}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%% TO KEEP
+WP1 introduces the PI to agent ecosystems and AI security, and builds the expertise that
+WP2 and WP3 require in that domain.
+%
+WP2 and WP3 are more tightly coupled.
 
 \subsection{Theory and method}
 
@@ -1223,11 +1216,13 @@ complements two parallel research lines of the PI.
 WP1 is related to an ongoing WASP-funded project on choreographic
 programming~\cite{Ionescu:Russo:PEPM26}, which also enforces control-flow
 properties at compile time---providing a shared conceptual foundation and a
-pool of complementary expertise to draw on.
+pool of complementary expertise to draw on; the WASP PhD student will
+also contribute to WP1.
 %
 WP2 complements an ongoing VR Special Call on Cybersecurity project that
 applies IFC techniques to model and enforce GDPR compliance---bringing mature
-IFC domain knowledge directly into the eBPF enforcement design.
+IFC domain knowledge directly into the eBPF enforcement design; the PhD
+student from that project will also contribute to WP2.
 
 \section{Equipment}
 
