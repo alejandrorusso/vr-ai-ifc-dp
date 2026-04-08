@@ -875,37 +875,40 @@ grounded in the principles of LIO~\cite{stefan:lio,Stefan:LIO:JFP16,Buiras:2015}
 the PI's line of work on dynamic floating-label IFC.
 %
 A \emph{read effect} captures the act of observing information: the
-process's label is raised to the join of its current process label and the label of
-the data being read, ensuring it can no longer write to destinations less
-sensitive than what it has observed. 
+process's label is raised to the join---i.e., the most restrictive
+combination---of its current label and the label of the data being read,
+ensuring it can no longer write to destinations less sensitive than what it
+has observed.
 %
 A \emph{write effect} captures the act of producing an output: we verify that
-the process's label flows to the destination's label, tightening the
-destination when necessary or possible.
+the destination's label is at most as restrictive as the process's label---and 
+relabelling the destination when necessary or possible.
 %
-A novel aspect of our design is the treatment of the terminal as an
-\emph{IFC channel}: when a child process writes to the screen (a \texttt{tty} device), its label
-propagates \emph{upward} to the parent agent that reads that output,
-making the terminal a propagation channel of taint between processes rather
-than a passive I/O device.
+A novel aspect of our design is the treatment of the terminal as an \emph{IFC
+channel}: when a child process (i.e., a tool) writes to the screen (a
+\texttt{tty} device), its label propagates \emph{upward} to the parent (i.e., AI agent)
+that reads that output, making the terminal a propagation channel of taint
+between processes rather than a passive I/O device.
 %
-To our knowledge, no prior OS-level IFC system has modelled the terminal in this way;
-all three treat it as a static external endpoint~\cite{Efstathopoulos:2005,krohn:flume,Zeldovich:2006}---rather than a
-label-propagating channel.
+To our knowledge, no prior OS-level IFC system has modelled the terminal in
+this way. 
+% ; all three treat it as a static external
+% endpoint~\cite{Efstathopoulos:2005,krohn:flume,Zeldovich:2006}---rather than a
+% % label-propagating channel.
 %
 
 Figure~\ref{fig:taint} focuses on two representative tool invocations.
 %
-In case~(i), $P_1$ runs a command such as \texttt{cat /sensitive/report.txt}
+On the left, $P_1$ runs a command such as \texttt{cat /sensitive/report.txt}
 and prints the result to the terminal; the AI agent reads that output back,
-so the child's taint \emph{propagates to the parent}---the agent's label is
-raised to reflect the sensitivity of the data it has now observed.
+so the child's taint \emph{propagates to the parent}---i.e., the agent's label is
+joined with the child's label.
 %
-In case~(ii), $P_2$ runs a command such as
+On the right, $P_2$ runs a command such as
 \texttt{cp /sensitive/data.csv /results/out.csv}, reading and writing
 directly in the filesystem without returning output to the terminal;
 the child's taint remains confined to file~$f$, and the parent's label
-is \emph{not raised}, thereby avoiding label creep in the orchestrating agent.
+is \emph{not raised}, thereby mitigating label creep in the orchestrating agent.
 %
 A key challenge is therefore to correctly classify each shell command invocation
 as one that reports back to the agent---and thus necessarily raises its label---or
