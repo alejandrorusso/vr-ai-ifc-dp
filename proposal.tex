@@ -142,9 +142,9 @@ sensitivity and integrity level (e.g., \emph{secret}/\emph{public} or
 in a mandatory fashion as data flows through computations.
 %
 Applying this discipline to AI agent pipelines raises three difficulties: 
-(i) \emph{label creep}: every read raises the agent's label to match the
+(i)~\emph{label creep}: every read raises the agent's label to match the
 sensitivity of the data read, progressively restricting where it may write,
-until it can no longer produce any useful output.
+until it can no longer produce any useful output; 
 %
 % A \emph{floating-label} IFC system~\cite{stefan:lio} is needed, one that
 % manages label escalation carefully so that agents can still make progress.
@@ -152,7 +152,7 @@ until it can no longer produce any useful output.
 (ii)~\emph{deployment without code modification or tools recompilation}: a
 backwards-compatible enforcement mechanism is desirable; and  
 %
-(iii) \emph{lack of label assignment}: tools do not declare the sensitivity of
+(iii)~\emph{lack of label assignment}: tools do not declare the sensitivity of
 the data they handle~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}, so there is no
 source of labels to enforce.
 %
@@ -324,7 +324,9 @@ security-respecting plans.
 \paragraph{IFC for AI agent pipelines via eBPF}
 This is the first adaptation of floating-label IFC to LLM-based agents with
 tools (e.g., Claude Code, OpenCode, Codex), with a formal semantics and
-noninterference proofs.
+noninterference proofs.\footnote{We start by assuming a deterministic model
+semantics as in FIDES~\cite{Costa:FIDES25}, and then explore generalisations
+to a probabilistic setting.}
 %
 A key novelty is using eBPF\footnote{\url{https://ebpf.io}}---a sandboxed virtual machine
 inside the Linux kernel that can hook into a wide range of kernel events---to
@@ -490,7 +492,9 @@ synthesis step.
 %
 The threat we address is therefore: can adversarially crafted data values,
 encountered \emph{during execution},
-cause the agent to deviate from its plan?
+cause the agent to deviate from its plan?\footnote{We restrict to
+single-invocation plan synthesis; agents running over multiple turns are
+addressed in WP2 via IFC enforcement of the agentic loop.}
 %
 
 % The first challenge is that AI planning is inherently data-dependent: agents
@@ -597,11 +601,8 @@ The set of reachable handlers is fully determined by the plan's type---no
 injected value can introduce a handler outside that set.
 
 Finally, Figure~\ref{fig:dual} sketches our proposed \mintinline{haskell}{quarantine}
-primitive for the \emph{dual-LLM} pattern~\cite{BeurerKellner:Patterns25}:
-%
-\begin{minted}[fontsize=\small]{haskell}
-quarantine :: LLM (Prompt, a) (Untrusted b)
-\end{minted}
+primitive of type \mintinline{haskell}{LLM (Prompt, a) (Untrusted b)}
+for the \emph{dual-LLM} pattern~\cite{BeurerKellner:Patterns25}.
 %
 The primitive runs a trusted \mintinline{haskell}{Prompt} against potentially
 adversarial input \mintinline{haskell}{a} in a sandboxed LLM call and returns
@@ -1027,9 +1028,10 @@ side-channel that should be accounted for.
 We will prove that these relaxations preserve noninterference.
 
 \paragraph{Task~2.3 --- Evaluation on agentic benchmarks.}
-We will evaluate the system on established agentic benchmarks such as
-SWE-bench~\cite{Jimenez:SWEBench24}, measuring security guarantees,
-label-creep incidence, and performance overhead. 
+We will evaluate the system on AgentDojo~\cite{Debenedetti:AgentDojo24}, a benchmark
+specifically designed to test agent security under prompt-injection attacks. 
+% , measuring
+% security guarantees, label-creep incidence, and performance overhead.
 % across representative
 % file-system-intensive agent tasks.
 %
@@ -1051,8 +1053,9 @@ We argue that agents seldom need raw records, but
 \emph{aggregate insights} (e.g., averages) that can be delivered
 without exposing raw data.
 %
-We therefore propose that agents access sensitive databases exclusively through
-Differential Privacy queries.
+We therefore propose that agents access sensitive databases through
+Differential Privacy queries whenever aggregate insights suffice;
+non-sensitive metadata and schema introspection remain accessible directly.
 %
 % The agent crafts a DP query; the DSL adds calibrated noise and returns an
 % \emph{anonymised} statistical result whose IFC label is $\bot$---no taint is
@@ -1186,10 +1189,14 @@ integrated in Year~4, reducing the risk of blocking dependencies.
 Three main specific risks are identified and mitigated as follows:
 
 \begin{CompactItemizeee} \item \emph{WP1 --- Arrow combinators insufficient for
-  all design patterns.} If the standard Arrow primites cannot express a
+  all design patterns.} If the standard Arrow primitives cannot express a
   required pattern, we will propose custom ones and/or extend the \texttt{LLM}
   datatype with additional capabilities, guided by the pattern catalogue
   of~\cite{BeurerKellner:Patterns25}.
+  %
+  Should the benchmark evaluation (Task~1.3) prove more time-consuming than
+  anticipated, it can spill into the early months of Year~2 without affecting
+  the WP2 schedule.
 %
   \item \emph{WP2 --- Label creep remains unacceptable after mitigations.}
     If the two relaxations (public-file rule and terminal-isolation rule)
@@ -1249,24 +1256,21 @@ directly supports the project.
 %
 \textbf{Prof.\ Marco Gaboardi} (Boston University, USA) is a long-standing
 collaborator on Differential Privacy; together they co-developed
-DPella~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,LoboVesga:OOPSLA24} and
-the recent accuracy work for DP quotients~\cite{Russo:CCS25}.
+DPella~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,LoboVesga:OOPSLA24}. 
 %
 \textbf{Prof.\ David Mazières} (Stanford) and \textbf{Prof.\ Deian Stefan}
 (UC San Diego, USA) are leading experts in OS-level IFC and secure systems;
-together with the PI they co-designed LIO and the web IFC frameworks Hails
+together with the PI they co-designed LIO, Hails, 
 and COWL~\cite{stefan:lio,stefan:addressing-covert,giffin:hails,COWL},
-providing directly relevant expertise for WP2.
+providing relevant expertise for WP2.
 %
 Nationally, the PI works with initiatives within Cybercampus (\textbf{Prof.
 Simone Fischer-H\"ubner}) and the WASP network. 
 
 \section{Independent line of research}
 
-The PI has led an independent research group at Chalmers since 2010 and was
-promoted to Full Professor in 2023.
-%
-This project is entirely the PI's own scientific initiative. 
+The PI has led an independent research group at Chalmers since 2010 
+and this project is entirely the PI's own scientific initiative. 
 %
 
 \small

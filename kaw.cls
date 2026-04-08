@@ -69,7 +69,7 @@
   \begin{picture}(0,0)
     \put(0,-4){\includegraphics[width=\linewidth]{chalmers_header}}
   \end{picture}
-  \hspace{2mm} \small\sectitlefont VR Project grant for research into cyber and information security}
+  \hspace{2mm} \small\sectitlefont VR Project grant within natural and engineering sciences}
 
 % Bibliography
 \usepackage[]{natbib}
