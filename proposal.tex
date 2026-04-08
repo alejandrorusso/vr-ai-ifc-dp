@@ -1174,11 +1174,72 @@ We will measure query correctness, privacy budget utilisation, and
 
 \subsection{Time plan and implementation}
 
+The project runs for five years and is executed by the PI and one PhD student.
+%
+The three work packages are scheduled sequentially, with each building on the
+previous, but designed to be \emph{independently executable} to minimise risk.
+
+\noindent\begin{tabular}{lp{9cm}}
+\textbf{Year 1}   & WP1: Arrow-based planning DSL. \\[2pt]
+\textbf{Years 2--3} & WP2: Floating-label IFC harness. \\[2pt]
+\textbf{Years 4--5} & WP3: DP as declassification. \\
+\end{tabular}
+
+\paragraph{Risk management.}
+Although WP3 logically depends on WP2 (the DP layer interacts with the IFC
+label system), both work packages can be prototyped independently and
+integrated in Year~4, reducing the risk of blocking dependencies.
+%
+Three main specific risks are identified and mitigated as follows:
+
+\begin{CompactItemizeee} \item \emph{WP1 --- Arrow combinators insufficient for
+  all design patterns.} If the standard Arrow primites cannot express a
+  required pattern, we will propose custom ones and/or extend the \texttt{LLM}
+  datatype with additional capabilities, guided by the pattern catalogue
+  of~\cite{BeurerKellner:Patterns25}.
+%
+  \item \emph{WP2 --- Label creep remains unacceptable after mitigations.}
+    If the two relaxations (public-file rule and terminal-isolation rule)
+    prove insufficient, we will investigate a \emph{hybrid} approach in
+    which the AI agent explicitly annotates each tool invocation with its
+    expected I/O behaviour, allowing the eBPF monitor to apply finer-grained
+    taint decisions.
+%
+  \item \emph{WP3 --- Type-level schema encoding too restrictive or complex.}
+    If the type-system approach proves impractical, we will fall back to a
+    \emph{static analysis} layer over a simpler typed DSL. 
+  \end{CompactItemizeee}
+
+
 \subsection{Project organization}
+
+The project is executed by the PI (15\%) and one PhD student (80\%) over five years.
+%
+
+\paragraph{Relation to ongoing research.} The project benefits from and
+complements two parallel research lines of the PI. 
+%
+WP1 is related to an ongoing WASP-funded project on choreographic
+programming~\cite{Ionescu:Russo:PEPM26}, which also enforces control-flow
+properties at compile time---providing a shared conceptual foundation and a
+pool of complementary expertise to draw on.
+%
+WP2 complements an ongoing VR Special Call on Cybersecurity project that
+applies IFC techniques to model and enforce GDPR compliance---bringing mature
+IFC domain knowledge directly into the eBPF enforcement design.
 
 \section{Equipment}
 
-No special equipment is needed beyond standard computing resources.
+The project requires no specialised hardware beyond standard computing
+resources.
+%
+For experiments requiring frontier LLM capabilities, we will use API
+subscriptions to state-of-the-art commercial models (e.g., Claude).
+%
+For controlled, reproducible experiments, including
+local plan synthesis and eBPF evaluation, we will use compact workstations
+(e.g., Apple Mac minis), which provide sufficient compute for running
+smaller LLMs locally without incurring high costs.
 
 \section{Need for research infrastructure}
 
@@ -1186,7 +1247,52 @@ No special research infrastructure is required.
 
 \section{International and national collaboration}
 
+The PI collaborates with international researchers whose expertise
+directly supports the three work packages of this project.
+%
+\textbf{Prof.\ Marco Gaboardi} (Boston University, USA) is a long-standing
+collaborator on Differential Privacy; together they co-developed
+DPella~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,LoboVesga:OOPSLA24} and
+the recent accuracy work for DP quotients~\cite{Russo:CCS25}.
+%
+\textbf{Prof.\ David Mazières} (Stanford) and \textbf{Prof.\ Deian Stefan}
+(UC San Diego, USA) are leading experts in OS-level IFC and secure systems;
+together with the PI they co-designed LIO and the web IFC frameworks Hails
+and COWL~\cite{stefan:lio,stefan:addressing-covert,giffin:hails,COWL},
+providing directly relevant expertise for WP2.
+%
+Nationally, the PI collaborates with colleagues in the \emph{Formal Methods}
+and \emph{Security} divisions at Chalmers, and with the broader Swedish privacy
+and cybersecurity research community, including ongoing interaction with
+researchers working on GDPR compliance and formal verification.
+
 \section{Independent line of research}
+
+The PI has led an independent research group at Chalmers since 2010 and was
+promoted to Full Professor in 2023.
+%
+This project is entirely the PI's own scientific initiative and has no
+relationship to doctoral or postdoctoral supervisors; the PI has not
+collaborated with his former advisor for well over a decade.
+%
+The project is also independent from the group's other ongoing work: while
+it draws on techniques developed in prior projects (LIO, DPella), it applies
+them to a fundamentally new domain---AI agent pipelines---that none of those
+projects addressed.
+%
+Specifically, it is distinct in three ways:
+\begin{CompactItemizeee}
+  \item \emph{New target domain.} Prior IFC and DP work did not address
+    LLM-generated plans or tool invocations; the new challenges in label
+    propagation, trust modelling, and privacy-budget management have no
+    precedent in either community.
+  \item \emph{Novel theoretical combination.} Using DP releases as the
+    sole declassification primitive of an IFC system is a new contribution
+    with no precedent in either the IFC or DP literature.
+  \item \emph{New deployment strategy.} Enforcing security guarantees on
+    unmodified AI agents via eBPF goes beyond any prior language-level IFC
+    work by the PI or others.
+\end{CompactItemizeee}
 
 \clearpage
 \onecolumn
