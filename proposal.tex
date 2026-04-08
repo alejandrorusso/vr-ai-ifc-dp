@@ -138,7 +138,7 @@ IFC~\cite{Sabelfeld:Myers:JSAC} is a principled
 approach to both properties, where  
 every piece of data carries a \emph{label}---a tag denoting its
 sensitivity and integrity level (e.g., \emph{secret}/\emph{public} or
-\emph{trusted}/\emph{untrusted})---that is get propagated and enforced
+\emph{trusted}/\emph{untrusted})---that gets propagated and enforced
 in a mandatory fashion as data flows through computations.
 %
 Applying this discipline to AI agent pipelines raises three difficulties: 
@@ -149,7 +149,7 @@ until it can no longer produce any useful output.
 % A \emph{floating-label} IFC system~\cite{stefan:lio} is needed, one that
 % manages label escalation carefully so that agents can still make progress.
 % %
-Second, \emph{deployment without code modification or tools recompilation}: a
+(ii)~\emph{deployment without code modification or tools recompilation}: a
 backwards-compatible enforcement mechanism is desirable; and  
 %
 (iii) \emph{lack of label assignment}: tools do not declare the sensitivity of
@@ -239,7 +239,7 @@ label-creep problem is not the main focus of the work.
 
 
 \paragraph{Differential Privacy}
-Differential privacy (DP) \citep{Dwork:2006} is an emerging viable solution to
+Differential privacy (DP) \cite{Dwork:2006} is a well-established solution to
 release statistical information with guarantees for
 the protection of individuals' privacy.
 %
@@ -256,8 +256,8 @@ accuracy.
 %
 It is then not surprising that existing programming frameworks for developing
 differentially private analyses often have limited support for exploring
-accuracy (e.g., \citep{Apex,DBLP:journals/corr/GaboardiHKNUV16}), \emph{if any
-  at all} (e.g., \citep{PINQ09,ZhangMKHMM18,JohnsonNS18}).
+accuracy (e.g., \cite{Apex,DBLP:journals/corr/GaboardiHKNUV16}), \emph{if any
+  at all} (e.g., \cite{PINQ09,ZhangMKHMM18,JohnsonNS18}).
 %
 The PI has developed principled solutions to provide accuracy guarantees
 for composite queries~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}.
@@ -273,7 +273,7 @@ al.~\cite{Abadi:CFI:CCS05} as a principled defence against code-reuse
 attacks. 
 % : by pre-computing a valid call graph and enforcing at runtime that
 % every indirect branch follows an allowed edge, 
-In an nutshell, CFI prevents attackers from redirecting execution to arbitrary locations.
+In a nutshell, CFI prevents attackers from redirecting execution to arbitrary locations.
 %
 Solutions span from hardware mechanisms such as Intel
 Control-Flow Enforcement Technology\footnote{\href{https://www.intel.com/content/www/us/en/developer/articles/technical/technical-look-control-flow-enforcement-technology.html}{intel.com: A Technical Look at Intel CET}} and shadow
@@ -304,7 +304,7 @@ and IFC~\cite{Tsai:Russo:Hughes:CSF07}.
 \label{sec:novelty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This project lays at the intersection of
+This project lies at the intersection of
 programming-language security, data privacy, OS security, and AI systems.
 %
 Its significance rests on three novelties.
@@ -1038,7 +1038,7 @@ label-creep incidence, and performance overhead.
 \subsubsection{WP3: Privacy-bounded data consumption}
 %
 Beyond the filesystem, AI agents increasingly connect to databases containing
-sensitive health records, HR data, or finantial information.
+sensitive health records, HR data, or financial information.
 %
 When tasked with analysing such data---e.g., computing salary trends---an agent
 operating under a pure IFC system must read raw table rows, immediately raising
@@ -1125,7 +1125,7 @@ Following the tradition of type-safe database
 libraries~\cite{leijen:haskelldb,haskelldb-improved}, we lift data schemas to
 the type level; our departure is that schemas are \emph{generic}---where we propose 
 to use the
-sum-of-products representation~\cite{deVries:SOP:WGP14} for schema supplied at runtime time
+sum-of-products representation~\cite{deVries:SOP:WGP14} for schemas supplied at runtime
 but without sacrificing static safety.
 %
 Once a well-typed query is synthesised, the DSL computes accuracy
