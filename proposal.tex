@@ -912,9 +912,10 @@ is \emph{not raised}, thereby mitigating label creep in the orchestrating agent.
 %
 A key challenge is therefore to correctly classify each shell command invocation
 as one that reports back to the agent---and thus necessarily raises its label---or
-one that just operates on the filesystem, so that the agent's label remains
-unaffected and it retains the ability to communicate results to lower-sensitivity
-destinations.
+one that just operates on the filesystem. 
+% , so that the agent's label remains
+% unaffected and it retains the ability to communicate results to lower-sensitivity
+% destinations.
 
 \begin{figure*}[t]
 \centering
@@ -956,15 +957,14 @@ destinations.
 
 
 \paragraph{IFC labels}
-
 POSIX permission bits assign read and write access to three roles:
-\emph{owner} (user), \emph{group}, and \emph{others}; we ignore execute bits.
+\emph{owner} (user), \emph{group}, and \emph{others}; we ignore execute bits
 \footnote{Linux permissions are non-cumulative: a process is governed by
   exactly one role---e.g., a user matching the file's owner obtains the owner
   bits regardless of group membership.
   %
   We therefore treat $\mathsf{other}$ as more restrictive than $\mathsf{group}$,
-  which is more restrictive than $\mathsf{user}$.}
+  which is more restrictive than $\mathsf{user}$.}.
 %
 We propose IFC labels as triples $(\rho,\, b_r,\, b_w)$ of a role
 $\rho \in \{\mathsf{user},\, \mathsf{group},\, \mathsf{other}\}$ and two
@@ -977,6 +977,7 @@ $(\rho_1, b_{r_1}, b_{w_1}) \sqcup (\rho_2, b_{r_2}, b_{w_2}) =
 where $\mathbin{\&}$ is bitwise AND, and roles are joined as described below.
 
 Joining roles requires more care.
+%
 When both labels carry the \emph{same} role identity, the join is that identity.
 When they differ, no single POSIX owner or group can represent the combined
 identity, so we introduce two special principals:
@@ -986,11 +987,15 @@ $\mathsf{manygroups}$, for joins across distinct groups:
   \mathsf{user}_A \sqcup \mathsf{user}_B &= \mathsf{manyusers} \quad (A \neq B), \\
   \mathsf{group}_G \sqcup \mathsf{group}_H &= \mathsf{manygroups} \quad (G \neq H).
 \end{align*}
+%
 Only a system administrator can grant access under these principals, since no
 ordinary user can assign a synthetic multi-identity as a file owner.
+%
 As a practical consequence, data whose label reaches $\mathsf{manyusers}$ or
 $\mathsf{manygroups}$ is quarantined from ordinary users until an administrator
-explicitly re-grants access.
+explicitly re-grants access---a natural price to pay for repurposing the
+existing POSIX permission system as an IFC label model.
+%
 For example, if an agent reads a file owned by Alice and one owned by Bob, any
 file it subsequently writes inherits a $(\mathsf{manyusers}, \ldots)$ label and
 is inaccessible to either user without administrative intervention.
@@ -1008,28 +1013,32 @@ This single rule eliminates spurious escalations that would otherwise occur
 whenever an agent reads shared configuration files or other non-sensitive system
 resources.
 %
-\paragraph{Task~2.1 --- BPF-LSM floating-label monitor.}
-We will implement the floating-label IFC monitor using BPF-LSM hooks,
-realising taint propagation for \texttt{read}, \texttt{write},
-\texttt{fork}/\texttt{exec}, and \texttt{tty} events with POSIX-derived labels,
-requiring no kernel patches or application recompilation.
-
-\paragraph{Task~2.2 --- Label-creep mitigation and noninterference.}
-We will design and implement two label-creep mitigation techniques: (i)~files
-whose \textsf{other}:r bit is set are treated as $\bot$, so reading public
-resources does not raise the agent's label; and (ii)~taint is not propagated to
-the parent agent when a child process writes exclusively to files rather than
-to the \texttt{terminal}, confining sensitivity to the filesystem rather than the
-orchestrating agent.
+\paragraph{Task~2.1 --- BPF-LSM floating-label IFC}
+We will implement the floating-label IFC monitor using BPF-LSM hooks 
+as described above. 
+% realising taint propagation for \texttt{read}, \texttt{write},
+% \texttt{fork}/\texttt{exec}, and \texttt{tty} events with POSIX-derived labels,
+% requiring no kernel patches or application recompilation.
 %
-We will prove that both relaxations preserve noninterference.
+\paragraph{Task~2.2 --- Label-creep mitigation and noninterference.}
+We will design and implement two label-creep mitigation techniques, i.e.,
+treating public data as label $\bot$, and avoiding tainting AI agents when
+tools only operate on the filesystem.
+%
+We will also investigate how to handle success and failure reports of tool
+invocations: even when an agent does not read the content of a file, it may
+learn sensitive information from exit codes or error messages---a subtle
+side-channel that should be accounted for.
+%
+We will prove that these relaxations preserve noninterference.
 
 \paragraph{Task~2.3 --- Evaluation on agentic benchmarks.}
 We will evaluate the system on established agentic benchmarks such as
 SWE-bench~\cite{Jimenez:SWEBench24}, measuring security guarantees,
-label-creep incidence, and performance overhead across representative
-file-system-intensive agent tasks.
-
+label-creep incidence, and performance overhead. 
+% across representative
+% file-system-intensive agent tasks.
+%
 
 
 \subsubsection{WP3: Privacy-bounded data consumption}
@@ -1044,12 +1053,12 @@ its label to match the sensitivity of records.
 The agent quickly becomes \emph{too tainted} to communicate any result to a
 lower-clearance destination---thus hitting the \emph{label creep} problem.
 %
-The key observation is that agents seldom need raw records: they need
-\emph{aggregate insights}---averages, trends, counts---which can be delivered
-without ever exposing raw data.
+We argue that agents seldom need raw records, but 
+\emph{aggregate insights} (e.g., averages) that can be delivered
+without exposing raw data.
 %
 We therefore propose that agents access sensitive databases exclusively through
-Differential Privacy queries---thus protecting privacy of individuals. 
+Differential Privacy queries.
 %
 % The agent crafts a DP query; the DSL adds calibrated noise and returns an
 % \emph{anonymised} statistical result whose IFC label is $\bot$---no taint is
@@ -1076,7 +1085,7 @@ Once the budget is exhausted, no further queries can be answered without
 risking the privacy of individuals in the dataset.
 %
 This imposes two stringent requirements on any query an agent submits: (i)~it
-must be \emph{correct and run to completion}---a failed or retried query might
+must be \emph{valid and run to completion}---a failed or retried query might
 waste budget without delivering complete results; and (ii)~it is highly
 convenient to know the \emph{accuracy} of the noisy answer \emph{before}
 committing the query, so the agent can make an informed cost--benefit
@@ -1088,7 +1097,7 @@ work~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}.
 \paragraph{A type-safe DP query DSL}
 %
 To address these challenges, we propose a \emph{type-safe DP query DSL} in
-which query invariants are encoded directly in the type system:
+which encodes several query invariants directly in the type system:
 %
 \begin{CompactItemizeee}
   \item \emph{Valid categorical values}:
@@ -1101,18 +1110,17 @@ which query invariants are encoded directly in the type system:
     parameters; when a filter is applied, the type system automatically
     \emph{narrows} the bound---thus potentially
     reducing the noise the DSL must add, e.g.,
-    \mintinline{haskell}{salary :: IntTy 0 1000000} becomes
-    \mintinline{haskell}{salary :: IntTy 50001 1000000} after
-    \mintinline{haskell}{filter (salary `gt` 50000)}.
+    \mintinline{haskell}{salary :: IntRange 0 1000} becomes
+    \mintinline{haskell}{salary :: IntTy 501 1000} after
+    \mintinline{haskell}{filter (salary > 500)}.
 
   \item \emph{Column existence}:
     a projection or aggregation can only reference columns that are present
     in the current schema.
 \end{CompactItemizeee}
 %
-In the spirit of Milner's dictum that ``well-typed programs cannot go
-wrong''~\cite{Milner:TypePoly:78}, a well-typed query is, by construction, a
-correct query.
+In the spirit of Milner's phrase that ``well-typed programs cannot go
+wrong''~\cite{Milner:TypePoly:78}, a well-typed query is a valid one. 
 %
 When an LLM synthesises a DP query, it receives continuous feedback from the
 type checker; type errors act as a structured signal that guides the model
@@ -1123,10 +1131,10 @@ Following the tradition of type-safe database
 libraries~\cite{leijen:haskelldb,haskelldb-improved}, we lift data schemas to
 the type level; our departure is that schemas are \emph{generic}---where we propose 
 to use the
-sum-of-products representation~\cite{deVries:SOP:WGP14} for any schema supplied at runtime time
+sum-of-products representation~\cite{deVries:SOP:WGP14} for schema supplied at runtime time
 but without sacrificing static safety.
 %
-Once a well-typed query is synthesised and executed, the DSL computes accuracy
+Once a well-typed query is synthesised, the DSL computes accuracy
 (e.g., using PI's  work~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21}) for the noisy
 result and reports them to the agent before any privacy budget is committed,
 allowing the agent to make an informed cost--benefit decision.
@@ -1148,20 +1156,19 @@ sum-of-products representation~\cite{deVries:SOP:WGP14}.
 
 \paragraph{Task~3.2: LLM agent skills for DP query synthesis}
 We will develop a set of \emph{LLM agent skills} 
-to enable an agent to write DP queries in
-the DSL of Task~3.1, reason about privacy budget expenditure, and explore
+to enable an agent to write DP queries, 
+reason about privacy budget expenditure, and explore
 privacy--accuracy trade-offs. 
 %
-Type errors will provide
-the agent with actionable feedback to iteratively refine its query.
+% Type errors will provide
+% the agent with actionable feedback to iteratively refine its query.
 
 \paragraph{Task~3.3: Evaluation on standard statistical analyses}
-We will evaluate the combined system on a suite of standard univariate and
-multivariate analyses, e.g., histograms, cumulative distribution functions,
-contingency tables, and cross-tabulations. 
+We will evaluate the combined system on a suite of standard univariate, e.g., 
+histograms, contingency tables, and cross-tabulations. 
 %
 We will measure query correctness, privacy budget utilisation, and
-accuracy of the reported results against non-private baselines.
+ accuracy of the reported results against appropiated baselines.
 
 
 
