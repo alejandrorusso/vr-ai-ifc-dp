@@ -190,7 +190,7 @@ side-effects---fine-tuning on a narrow task can cause broad behavioural
 misalignment across unrelated domains~\cite{Betley:Misalignment26}.
 %
 At the \emph{system level}, input transformation techniques such as
-spotlighting~\cite{Hines:Spotlighting:24} mark trusted and untrusted content
+spotlighting~\cite{BeurerKellner:Patterns25} mark trusted and untrusted content
 with special delimiters to reduce confusion; heuristic design
 patterns~\cite{BeurerKellner:Patterns25} provide structured mitigations for
 specific injection scenarios; and benchmarks~\cite{Liu:FormalizingPI:24,Debenedetti:AgentDojo24,Zhao:ParasiticMCP26}
@@ -210,7 +210,7 @@ deployment-friendly enforcement model.
 %
 At the \emph{programming language level}, each variable carries its own label, enabling
 fine-grained tracking; representative compilers and interpreters include
-Jif~\cite{jif} (Java), FlowCaml~\cite{FlowCaml} (Ocaml),
+Jif\footnote{\url{http://www.cs.cornell.edu/jif}} (Java), FlowCaml\footnote{\url{http://cristal.inria.fr/~simonet/soft/flowcaml/}} (OCaml),
 Paragon~\cite{conf/aplas/BrobergDS13} (Java), and JSFlow~\cite{JSFlow} (Javascript).
 %
 The PI has developed a family of libraries that enforce IFC through a
@@ -272,7 +272,7 @@ attacks.
 In an nutshell, CFI prevents attackers from redirecting execution to arbitrary locations.
 %
 Solutions span from hardware mechanisms such as Intel
-Control-Flow Enforcement Technology~\cite{Intel:CET:2020} and shadow
+Control-Flow Enforcement Technology\footnote{\url{https://www.intel.com/content/www/us/en/developer/articles/technical/technical-look-control-flow-enforcement-technology.html}} and shadow
 stacks, to compiler instrumentation~\cite{Tice:CompilerCFI:USENIX14} and
 OS-level enforcement~\cite{Burow:CFI:CSUR17}. 
 % , and CFI is now a standard
@@ -322,7 +322,7 @@ This is the first adaptation of floating-label IFC to LLM-based agents with
 tools (e.g., Claude Code, OpenCode, Codex), with a formal semantics and
 noninterference proofs.
 %
-A key novelty is using eBPF~\cite{Vieira:eBPF20}---a sandboxed virtual machine
+A key novelty is using eBPF\footnote{\url{https://ebpf.io}}---a sandboxed virtual machine
 inside the Linux kernel that can hook into a wide range of kernel events---to
 enforce IFC on unmodified agents, requiring no kernel patches or recompilation.
 %
@@ -858,7 +858,7 @@ Second, they treat IFC labels and POSIX filesystem permissions as
 \emph{orthogonal}, imposing a dual label/permission model.
 %
 We propose to depart from both limitations by building on
-eBPF~\cite{Vieira:eBPF20}---originally a small in-kernel virtual machine for
+eBPF\footnote{\url{https://ebpf.io}}---originally a small in-kernel virtual machine for
 packet inspection---to enforce floating-label IFC for AI agent loops with no kernel
 patches, no new OS, and no recompilation required.
 %
@@ -1069,7 +1069,7 @@ system.
 
 Realising this vision poses concrete challenges.
 %
-Most existing DP tools (e.g., OpenDP~\cite{OpenDP:2023}, Tumult Analytics~\cite{TumultAnalytics:VLDB23}, DiffPrivLib~\cite{Holohan:DiffPrivLib:19}, and DPella~\cite{LoboVesga:SP20}) expose their own
+Most existing DP tools (e.g., OpenDP,\footnote{\url{https://opendp.org}} Tumult Analytics~\cite{TumultAnalytics:VLDB23}, DiffPrivLib~\cite{Holohan:DiffPrivLib:19}, and DPella~\cite{LoboVesga:SP20}) expose their own
 DSL. 
 %
 These DSLs are sufficiently niche that current LLMs have seen little
