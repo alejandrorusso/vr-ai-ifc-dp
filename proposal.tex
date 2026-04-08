@@ -393,8 +393,8 @@ but also useful.
 The proposal is motivated by very initial prototypes that the PI has built
 for all three challenges.
 %
-These artefacts confirm the technical feasibility and challenges of the 
-proposed approaches.
+These artefacts confirm the technical feasibility and challenges of the
+proposed approaches (e.g., LLM convergence when generating type-correct DP queries).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -404,11 +404,11 @@ proposed approaches.
 WP1 introduces the PI to agent ecosystems and AI security, and builds the expertise that
 WP2 and WP3 require in that domain.
 %
-WP2 and WP3 are more tightly coupled.
+WP2 and WP3 are more tightly coupled: WP2 enforces IFC, and WP3 introduces a principled relaxation of it (via DP). 
 
 \subsection{Theory and method}
 
-\subsubsection{WP1: Control-flow integrity}
+\subsubsection{WP1: Control-flow integrity}  
 
 % ── Figure 1: Arrow-based planning DSL ────────────────────────────────────
 \begin{figure*}[b]
@@ -1150,7 +1150,7 @@ sum-of-products representation~\cite{deVries:SOP:WGP14}.
 
 \paragraph{Task~3.2: LLM agent skills for DP query synthesis}
 We will develop a set of \emph{LLM agent skills} 
-to enable an agent to write DP queries, 
+to enable agents to write DP queries, 
 reason about privacy budget expenditure, and explore
 privacy--accuracy trade-offs. 
 %
@@ -1158,17 +1158,16 @@ privacy--accuracy trade-offs.
 % the agent with actionable feedback to iteratively refine its query.
 
 \paragraph{Task~3.3: Evaluation on standard statistical analyses}
-We will evaluate the combined system on a suite of standard univariate, e.g., 
-histograms, contingency tables, and cross-tabulations. 
+We will evaluate the DSL's expressive power by encoding representative analyses
+from the OpenDP\footnote{\url{https://opendp.org}} and
+SmartNoise\footnote{\url{https://smartnoise.org}} example suites.
 %
 We will measure query correctness, privacy budget utilisation, and
- accuracy of the reported results against appropiated baselines.
-
-
+accuracy of the reported results. 
 
 \subsection{Time plan and implementation}
 
-The project runs for five years and is executed by the PI and one PhD student.
+The project runs for five years (4 + 1).
 %
 The three work packages are scheduled sequentially, with each building on the
 previous, but designed to be \emph{independently executable} to minimise risk.
@@ -1207,10 +1206,11 @@ Three main specific risks are identified and mitigated as follows:
 
 \subsection{Project organization}
 
-The project is executed by the PI (15\%) and one PhD student (80\%) over five years.
+The project funds the PI (15\%) and one PhD student (80\%). 
 %
-
-\paragraph{Relation to ongoing research.} The project benefits from and
+% \paragraph{Relation to ongoing research} 
+%
+The project benefits from and
 complements two parallel research lines of the PI. 
 %
 WP1 is related to an ongoing WASP-funded project on choreographic
@@ -1221,21 +1221,22 @@ also contribute to WP1.
 %
 WP2 complements an ongoing VR Special Call on Cybersecurity project that
 applies IFC techniques to model and enforce GDPR compliance---bringing mature
-IFC domain knowledge directly into the eBPF enforcement design; the PhD
+IFC domain knowledge directly into the eBPF enforcement; the PhD
 student from that project will also contribute to WP2.
 
 \section{Equipment}
 
-The project requires no specialised hardware beyond standard computing
-resources.
+% The project requires no specialised hardware beyond standard computing
+% resources.
 %
 For experiments requiring frontier LLM capabilities, we will use API
 subscriptions to state-of-the-art commercial models (e.g., Claude).
 %
 For controlled, reproducible experiments, including
 local plan synthesis and eBPF evaluation, we will use compact workstations
-(e.g., Apple Mac minis), which provide sufficient compute for running
-smaller LLMs locally without incurring high costs.
+(e.g., Apple Mac minis). 
+% , which provide sufficient compute for running
+% smaller LLMs locally without incurring high costs.
 
 \section{Need for research infrastructure}
 
@@ -1265,9 +1266,7 @@ Simone Fischer-H\"ubner}) and the WASP network.
 The PI has led an independent research group at Chalmers since 2010 and was
 promoted to Full Professor in 2023.
 %
-This project is entirely the PI's own scientific initiative and has no
-relationship to doctoral or postdoctoral supervisors; the PI has not
-collaborated with his former advisor for well over a decade.
+This project is entirely the PI's own scientific initiative. 
 %
 
 \small
