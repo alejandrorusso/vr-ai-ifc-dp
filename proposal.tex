@@ -184,12 +184,13 @@ The security risks of LLM-based agents are widely recognised.
 % %
 At the \emph{model level}, alignment training and preference optimisation
 attempt to make models refuse adversarial
-instructions~\cite{Chen:StruQ:25,Chen:SecAlign:25}; however, these
+instructions~\cite{Chen:SecAlign:25}; however, these
 interventions offer only statistical guarantees and can trigger unexpected
 side-effects---fine-tuning on a narrow task can cause broad behavioural
 misalignment across unrelated domains~\cite{Betley:Misalignment26}.
 %
 At the \emph{system level}, input transformation techniques such as
+structured queries~\cite{Chen:StruQ:25} and
 spotlighting~\cite{BeurerKellner:Patterns25} mark trusted and untrusted content
 with special delimiters to reduce confusion; heuristic design
 patterns~\cite{BeurerKellner:Patterns25} provide structured mitigations for
