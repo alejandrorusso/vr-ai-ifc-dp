@@ -843,45 +843,27 @@ exfiltrate information.
 %
 The threat lies entirely in the effects of the \emph{tool calls} the agent issues.
 
-Our goal is an IFC enforcement that is \emph{backwards-compatible}:
-no changes to existing AI agent code, no special planning language,
-and deployable on standard Linux systems.
+Our goal is to develop a permissive IFC enforcement that is \emph{backwards-compatible}: no changes
+to existing agent code and deployable on standard Linux systems.
 %
-Prior OS-level IFC systems require some critical changes:
-Flume~\cite{krohn:flume} patches the kernel and replaces \texttt{libc};
-HiStar~\cite{Zeldovich:2006} and Asbestos~\cite{Efstathopoulos:2005}
-introduce a new OS; all three require recompiling applications.
+Prior OS-level IFC systems fall short in two ways.
 %
-Beyond deployment, prior systems also treat IFC labels and POSIX filesystem
-permissions as \emph{orthogonal}---introducing a dual label/permission model to maintain.
+First, either they enforce only a \emph{static} policy---e.g., SELinux~\cite{loscocco:selinux}
+fixes labels at process creation---or
+they require invasive deployment---e.g., Flume~\cite{krohn:flume} patches the kernel
+and replaces \texttt{libc}; HiStar~\cite{Zeldovich:2006}; and
+Asbestos~\cite{Efstathopoulos:2005} introduce an entirely new OS.
 %
-We depart from both limitations: our design requires no kernel patches,
-no new OS, no modified \texttt{libc}, and no recompilation, while
-\emph{inferring} IFC labels directly from POSIX permission bits.
+Second, they treat IFC labels and POSIX filesystem permissions as
+\emph{orthogonal}, imposing a dual label/permission model.
 %
-
-Linux has long supported mandatory access control through SELinux~\cite{loscocco:selinux},
-but SELinux enforces a \emph{static} IFC policy: labels are fixed at process creation and
-do not propagate with data flows.
+We propose to depart from both limitations by building on
+eBPF~\cite{Vieira:eBPF20}---originally a small in-kernel virtual machine for
+packet inspection---to enforce floating-label IFC for AI agent loops with no kernel
+patches, no new OS, and no recompilation required.
 %
-eBPF~\cite{Vieira:eBPF20} changes this calculus.
+Labels are inferred directly from existing POSIX permission bits. 
 %
-Originally a small in-kernel virtual machine for packet inspection,
-eBPF has been extended to hook into a wide range of kernel events---including
-the Linux Security Module (LSM) hooks that govern every security-sensitive
-operation on files, processes, and sockets.
-%
-We propose a design that shows eBPF is \emph{sufficient to implement
-OS-level floating-label IFC} for AI agent loops: labels travel with data,
-taint is propagated at each LSM hook, and no kernel patch or new OS is required.
-%
-% Our initial prototype departs from Asbestos, HiStar, and Flume in one further
-% respect: rather than \emph{blocking} disallowed flows, our monitor
-% \emph{tightens} the label of newly created files to reflect the sensitivity of
-% the data written into them.
-% %
-% This preserves agent progress while still enforcing the policy lattice,
-% and it produces an audit trail of every information-flow decision.
 
 \paragraph{Taint propagation via eBPF hooks}
 Our design intercepts system calls with two kinds of IFC effect,\footnote{%
