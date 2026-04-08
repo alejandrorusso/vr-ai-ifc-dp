@@ -1,0 +1,29 @@
+The PI's research record directly covers all three technical pillars of
+this proposal, demonstrating both depth and a track record of delivery.
+
+On Information Flow Control (WP2), the PI co-designed LIO, a
+floating-label IFC framework that underpins the eBPF-based enforcement
+proposed here. A subsequent paper proving the equivalence of coarse- and
+fine-grained IFC systems was awarded a Distinguished Paper at POPL 2019.
+Earlier work extending LIO to concurrent programs (ICFP 2012) received
+the Most Influential Paper Award in 2022, and practical deployments on
+the web platform (Hails, OSDI 2012; COWL, OSDI 2014) demonstrate the
+PI's ability to take IFC from theory to real systems. The PI's earliest
+IFC result used Arrow types to enforce IFC in Haskell (CSF 2007),
+directly establishing the foundation for WP1.
+
+On Differential Privacy (WP3), the PI co-developed DPella, a programming
+framework for writing differentially private queries with accuracy
+guarantees (IEEE S&P 2020; TOPLAS 2021; OOPSLA 2024). A recent result on
+accuracy for DP quotients was published at CCS 2025.
+
+As project leader, the PI has successfully managed two concurrent VR
+grants and the WASP-funded project on choreographic programming, all
+involving PhD supervision and international collaboration. Collaborations
+with leading groups at Boston University, Stanford, and UC San Diego
+provide complementary expertise in DP, OS security, and secure systems.
+
+The PI has led an independent research group at Chalmers since 2010. The
+combination of foundational results, award-winning publications, and
+demonstrated deployment experience confirms the PI's competence to lead
+this project.

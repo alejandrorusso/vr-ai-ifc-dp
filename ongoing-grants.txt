@@ -1,0 +1,22 @@
+The PI holds two ongoing grants from the Swedish Research Council whose
+periods partly overlap with this application.
+
+The first is a VR research grant, "Differential Privacy with Accuracy"
+(ending 2026), which developed DPella---a programming framework for
+reasoning about privacy--accuracy trade-offs in differentially private
+queries. That project focused on the theoretical foundations and language
+design of DP systems. The current proposal builds directly on these
+results in WP3, where DPella's accuracy techniques are adapted to an
+agentic setting, but goes substantially beyond it by integrating DP as a
+declassification primitive within an IFC system and targeting LLM-driven
+query synthesis---neither of which is within scope of the expiring grant.
+
+The second is a VR Special Call on Cybersecurity grant, "EDA: Towards
+Enforcing Data Privacy Regulations" (started 2025), which applies a
+combination of IFC and differential privacy to enforce GDPR principles in
+data processing pipelines. That project targets regulatory compliance in
+traditional software systems. The current proposal is complementary: it
+targets AI agent pipelines specifically, introduces eBPF-based OS-level
+enforcement, and addresses prompt injection and control-flow integrity---
+none of which are within scope of the EDA project. The two grants share
+conceptual foundations but address distinct problems with distinct methods.

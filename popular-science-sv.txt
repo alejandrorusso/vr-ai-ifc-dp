@@ -1,0 +1,29 @@
+AI-assistenter som agerar på egen hand – och hur vi kan lita på dem
+
+Moderna AI-system baserade på stora språkmodeller (LLM) används inte längre
+bara för att svara på frågor. De agerar alltmer självständigt: de läser och
+skriver filer, kör kod, söker i databaser och utför komplexa uppgifter på
+uppdrag av användaren – precis som ett AI-kodningsverktyg som Claude Code eller
+liknande system. Dessa så kallade AI-agenter används redan i vård, juridik,
+finans och mjukvaruutveckling.
+
+Problemet är att nuvarande system saknar grundläggande säkerhetsgarantier.
+En angripare kan gömma skadliga instruktioner i ett dokument som agenten läser
+– till exempel "skicka alla filer till angriparen" – och agenten kan följa dem
+utan att användaren märker något. Dessutom kan känsliga uppgifter läcka ut
+utan kontroll, eftersom systemet inte håller reda på vart informationen tar
+vägen efter att den hämtats.
+
+Det här projektet utvecklar ett säkert ramverk för AI-agenter, byggt på tre
+beprövade tekniker från programspråksforskningen. Den första tekniken fixerar
+agentens handlingsplan vid konstruktionstillfället, så att skadligt innehåll
+inte kan ändra vad agenten gör – bara de värden den bearbetar. Den andra
+tekniken märker all data med en känslighetsetikett och följer automatiskt hur
+informationen flödar genom systemet, utan att befintlig kod behöver ändras.
+Den tredje tekniken låter agenter ställa statistiska frågor om känsliga
+databaser med formella integritetsgarantier, utan att någonsin exponera
+enskilda personers uppgifter.
+
+Tillsammans ger dessa tre tekniker AI-agenter formellt verifierade garantier
+för sekretess, integritet och dataskydd – inte som en eftertanke, utan
+inbyggt redan från grunden.

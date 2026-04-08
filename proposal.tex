@@ -37,11 +37,28 @@
 \kawapplication{%
   Securing LLM Agents by Design 
 }{Alejandro Russo}{%
-  LLMs deployed as autonomous agents in high-stakes settings lack principled
-  security guarantees. This project adapts Information Flow Control and
-  Differential Privacy to secure AI agent pipelines by construction,
-  delivering formally verified end-to-end confidentiality, integrity, and
-  privacy.
+  LLMs deployed as autonomous agents in high-stakes settings---healthcare,
+  finance, law, and software engineering---use tools to read files, execute
+  code, and query databases. Current frameworks provide only coarse-grained
+  access control: they regulate which tools an agent may invoke but impose
+  no guarantees on how data propagates after access is granted. Sensitive
+  data can freely leak to unauthorised observers, and adversarially crafted
+  tool responses can hijack the agent's plan via prompt injection---causing
+  it to exfiltrate secrets or forge actions. Existing defences are
+  probabilistic and ad hoc, with no formal security guarantees.
+  %
+  This project introduces a principled security framework for LLM-based
+  agents, grounded in three technologies: (i) a typed Arrow-based planning
+  language in which the agent's computation graph is fixed at construction
+  time, so injected content can alter data values but never redirect control
+  flow; (ii) Information Flow Control (IFC) enforced via eBPF---a sandboxed
+  kernel virtual machine---that tracks data sensitivity across all tool
+  calls without modifying existing agent code, using POSIX permission bits
+  as labels; and (iii) Differential Privacy (DP) as the sole
+  declassification primitive, letting agents derive statistical insights
+  from sensitive databases without ever raising their security label.
+  Together, these deliver formally verified end-to-end confidentiality,
+  integrity, and privacy for AI agent pipelines by construction.
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -149,8 +166,8 @@ until it can no longer produce any useful output;
 % A \emph{floating-label} IFC system~\cite{stefan:lio} is needed, one that
 % manages label escalation carefully so that agents can still make progress.
 % %
-(ii)~\emph{deployment without code modification or tools recompilation}: a
-backwards-compatible enforcement mechanism is desirable; and  
+(ii)~\emph{deployment without code modification or tool recompilation}: a
+backwards-compatible enforcement mechanism is desirable; and
 %
 (iii)~\emph{lack of label assignment}: tools do not declare the sensitivity of
 the data they handle~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}, so there is no
@@ -523,20 +540,20 @@ composition---together with \mintinline{haskell}{(|||)} for typed branching,
 suffice to encode the principled design patterns for prompt-injection-resistant
 agents identified in~\cite{BeurerKellner:Patterns25}.
 %
-\begin{minted}[fontsize=\small]{haskell}
-arr   :: (a -> b) -> arrow a b
-(>>>) :: arrow a b -> arrow b c 
-      -> arrow a c
-(|||) :: arrow a c -> arrow b c 
-      -> arrow (Either a b) c
-\end{minted}
-%
 In Haskell, \mintinline{haskell}{e :: T} means ``expression \texttt{e} has
 type \texttt{T}'', and \mintinline{haskell}{a -> b} denotes a function from
 \texttt{a} to \texttt{b}; multiple arrows are right-associative, so
 \mintinline{haskell}{a -> b -> c} is a curried function taking \texttt{a} and
 \texttt{b} and returning \texttt{c}---morally equivalent to
 \mintinline{haskell}{(a, b) -> c}.
+%
+\begin{minted}[fontsize=\small]{haskell}
+arr   :: (a -> b) -> arrow a b
+(>>>) :: arrow a b -> arrow b c
+      -> arrow a c
+(|||) :: arrow a c -> arrow b c
+      -> arrow (Either a b) c
+\end{minted}
 
 The critical security property is that the graph topology is determined by
 the programmer at construction time, not by data at runtime%
@@ -876,7 +893,7 @@ ensuring it can no longer write to destinations less sensitive than what it
 has observed.
 %
 A \emph{write effect} captures the act of producing an output: we verify that
-the destination's label is at most as restrictive as the process's label---and 
+the destination's label is at most as restrictive as the process's label,
 relabelling the destination when necessary or possible.
 %
 A novel aspect of our design is the treatment of the terminal as an \emph{IFC
@@ -1093,8 +1110,8 @@ work~\cite{LoboVesga:SP20,LoboVesga:TOPLAS21,Russo:CCS25}.
 
 \paragraph{A type-safe DP query DSL}
 %
-To address these challenges, we propose a \emph{type-safe DP query DSL} in
-which encodes several query invariants directly in the type system:
+To address these challenges, we propose a \emph{type-safe DP query DSL} that
+encodes several query invariants directly in the type system:
 %
 \begin{CompactItemizeee}
   \item \emph{Valid categorical values}:

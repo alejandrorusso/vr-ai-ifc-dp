@@ -1,0 +1,22 @@
+LLMs deployed as autonomous agents in high-stakes settings---healthcare,
+finance, law, and software engineering---use tools to read files, execute
+code, and query databases. Current frameworks provide only coarse-grained
+access control: they regulate which tools an agent may invoke but impose
+no guarantees on how data propagates after access is granted. Sensitive
+data can freely leak to unauthorised observers, and adversarially crafted
+tool responses can hijack the agent's plan via prompt injection---causing
+it to exfiltrate secrets or forge actions. Existing defences are
+probabilistic and ad hoc, with no formal security guarantees.
+
+This project introduces a principled security framework for LLM-based
+agents, grounded in three technologies: (i) a typed Arrow-based planning
+language in which the agent's computation graph is fixed at construction
+time, so injected content can alter data values but never redirect control
+flow; (ii) Information Flow Control (IFC) enforced via eBPF---a sandboxed
+kernel virtual machine---that tracks data sensitivity across all tool
+calls without modifying existing agent code, using POSIX permission bits
+as labels; and (iii) Differential Privacy (DP) as the sole
+declassification primitive, letting agents derive statistical insights
+from sensitive databases without ever raising their security label.
+Together, these deliver formally verified end-to-end confidentiality,
+integrity, and privacy for AI agent pipelines by construction.
