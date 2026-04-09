@@ -174,7 +174,7 @@ the data they handle~\cite{Costa:FIDES25,Zhao:ParasiticMCP26}, so there is no
 source of labels to enforce.
 %
 \emph{Can IFC provide confidentiality and integrity guarantees for AI
-agent pipelines in a practical, backwards-compatible deployment?}
+agent pipelines in a practical, backwards-compatible manner?}
 
 %
 \paragraph{Challenge 3: Privacy-bounded data consumption}
@@ -186,7 +186,7 @@ label creep.
 %
 Yet agents rarely need raw data: they need \emph{aggregate insights} such as
 averages and trends, which can be delivered with formal privacy guarantees via
-Differential Privacy (DP)~\cite{Dwork:2006}.
+Differential Privacy~\cite{Dwork:2006}.
 %
 \emph{Can DP serve as a declassification primitive that lets agents query
 sensitive datasets without ever raising their label?}
@@ -256,7 +256,7 @@ label-creep problem is not the main focus of the work.
 
 
 \paragraph{Differential Privacy}
-Differential privacy (DP) \cite{Dwork:2006} is a well-established solution to
+DP~\cite{Dwork:2006} is a well-established solution to
 release statistical information with guarantees for
 the protection of individuals' privacy.
 %
@@ -308,11 +308,11 @@ prompt injection just as binary control flow can be hijacked by
 return-oriented programming, yet existing CFI tools operate at the wrong
 abstraction level to address this threat.
 %
-In this proposal we take a \emph{language-based} approach: encoding agent
+In this proposal we take a \emph{language-based} approach based on Arrows~\cite{hughes:generalising-monads-arrows}: encoding agent
 plans as computational graphs with a fixed topology, thus 
 preventing injected content from introducing new
 edges---building on the PI's prior work on
-Arrows \cite{hughes:generalising-monads-arrows} 
+Arrows  
 and IFC~\cite{Tsai:Russo:Hughes:CSF07}.
 
 
@@ -340,7 +340,7 @@ security-respecting plans.
 
 \paragraph{IFC for AI agent pipelines via eBPF}
 This is the first adaptation of floating-label IFC to LLM-based agents with
-tools (e.g., Claude Code, OpenCode, Codex), with a formal semantics and
+tools (e.g., Claude Code), with a formal semantics and
 noninterference proofs.\footnote{We start by assuming a deterministic model
 semantics as in FIDES~\cite{Costa:FIDES25}, and then explore generalisations
 to a probabilistic setting.}
@@ -519,7 +519,7 @@ addressed in WP2 via IFC enforcement of the agentic loop.}
 % prompt-injection-induced control-flow hijacking at execution time.
 %
 Our key insight is that \emph{Arrows}~\cite{hughes:generalising-monads-arrows}---a
-functional abstraction for data-flow graphs, the same computational model
+functional abstraction for data-flow programming, the same computational model
 underlying tools such as n8n and
 LangGraph\footnote{\tiny \url{https://n8n.io} (n8n)
 \url{https://langchain-ai.github.io/langgraph/}(LangGraph)}---are the right
@@ -555,7 +555,7 @@ arr   :: (a -> b) -> arrow a b
       -> arrow (Either a b) c
 \end{minted}
 
-The critical security property is that the graph topology is determined by
+The main insight of applying Arrows is that the graph topology is determined by
 the programmer at construction time, not by data at runtime%
 \footnote{Formally, \mintinline{haskell}{(>>>)} fixes its second argument at
 construction time---unlike monadic bind (\mintinline{haskell}{>>=}), which
@@ -630,7 +630,7 @@ from the programmer-controlled \mintinline{haskell}{Prompt}.
 %
 A key design goal is that \mintinline{haskell}{Untrusted a} values can only
 be consumed by \mintinline{haskell}{quarantine}---by construction, the
-planning LLM would have no access to them, so injected content could never
+planning LLM would have no access to the \mintinline{haskell}{content} field, so injected content could never
 propagate into trusted control flow.
 %
 Only injection-free types could be safely extracted via
@@ -853,7 +853,7 @@ We assume the \emph{LLM provider is trusted}: sending data to the model for
 inference does not leak it, and the model itself does not deliberately
 exfiltrate information.
 %
-The threat lies entirely in the effects of the \emph{tool calls} the agent issues.
+The threat lies in the effects of the \emph{tool calls} the agent issues.
 
 Our goal is to develop a permissive IFC enforcement that is \emph{backwards-compatible}: no changes
 to existing agent code and deployable on standard Linux systems.
@@ -862,9 +862,9 @@ Prior OS-level IFC systems fall short in two ways.
 %
 First, either they enforce only a \emph{static} policy---e.g., SELinux~\cite{loscocco:selinux}
 fixes labels at process creation---or
-they require invasive deployment---e.g., Flume~\cite{krohn:flume} patches the kernel
+they require system modifications---e.g., Flume~\cite{krohn:flume} patches the kernel
 and replaces \texttt{libc}; HiStar~\cite{Zeldovich:2006}; and
-Asbestos~\cite{Efstathopoulos:2005} introduce an entirely new OS.
+Asbestos~\cite{Efstathopoulos:2005} introduce a new OS.
 %
 Second, they treat IFC labels and POSIX filesystem permissions as
 \emph{orthogonal}, imposing a dual label/permission model.
@@ -878,16 +878,17 @@ Labels are inferred directly from existing POSIX permission bits.
 %
 
 \paragraph{Taint propagation via eBPF hooks}
-Our design intercepts system calls with two kinds of IFC effect,\footnote{%
-  Concretely: \texttt{fork}/\texttt{exec} propagate the parent's label to the
-  child; \texttt{open}/\texttt{create} tightens a new file's label to the
-  creator's current label; \texttt{read} raises the caller's label;
-  \texttt{write} tightens the target's label if possible (e.g., a file) or rejects it (e.g., network connection).}
+Our proposed design intercepts system calls with two kinds of IFC effect,
+% \footnote{%
+%   Concretely: \texttt{fork}/\texttt{exec} propagate the parent's label to the
+%   child; \texttt{open}/\texttt{create} tightens a new file's label to the
+%   creator's current label; \texttt{read} raises the caller's label;
+%   \texttt{write} tightens the target's label if possible (e.g., a file) or rejects it (e.g., network connection).}
 grounded in the principles of LIO~\cite{stefan:lio,Stefan:LIO:JFP16,Buiras:2015},
 the PI's line of work on dynamic floating-label IFC.
 %
 A \emph{read effect} captures the act of observing information: the
-process's label is raised to the join---i.e., the most restrictive
+process's label is raised to the join---i.e., the least, most restrictive
 combination---of its current label and the label of the data being read,
 ensuring it can no longer write to destinations less sensitive than what it
 has observed.
@@ -970,13 +971,16 @@ one that just operates on the filesystem.
 
 \paragraph{IFC labels}
 POSIX permission bits assign read and write access to three roles:
-\emph{owner} (user), \emph{group}, and \emph{others}; we ignore execute bits
+\emph{owner} (user), \emph{group}, and \emph{others}
 \footnote{Linux permissions are non-cumulative: a process is governed by
   exactly one role---e.g., a user matching the file's owner obtains the owner
   bits regardless of group membership.
   %
   We therefore treat $\mathsf{other}$ as more restrictive than $\mathsf{group}$,
-  which is more restrictive than $\mathsf{user}$.}.
+  which is more restrictive than $\mathsf{user}$.   
+  %
+  We ignore execute bits.
+  }.
 %
 We propose IFC labels as triples $(\rho,\, b_r,\, b_w)$ of a role
 $\rho \in \{\mathsf{user},\, \mathsf{group},\, \mathsf{other}\}$ and two
@@ -1005,15 +1009,15 @@ ordinary user can assign a synthetic multi-identity as a file owner.
 %
 As a practical consequence, data whose label reaches $\mathsf{manyusers}$ or
 $\mathsf{manygroups}$ is quarantined from ordinary users until an administrator
-explicitly re-grants access---a natural price to pay for repurposing the
-existing POSIX permission system as an IFC label model.
+explicitly re-grants access---\emph{a price to pay for repurposing the
+existing POSIX permission system as an IFC label model}.
 %
 For example, if an agent reads a file owned by Alice and one owned by Bob, any
 file it subsequently writes inherits a $(\mathsf{manyusers}, \ldots)$ label and
 is inaccessible to either user without administrative intervention.
-For flows that stay within a single user or group, labels propagate naturally,
+For \emph{flows that stay within a single user or group, labels propagate naturally,
 preserving confidentiality and integrity at group boundaries without interfering
-with files owned by other users.
+with files owned by other users}.
 
 Finally, to prevent label creep when agents process \emph{public} data, we
 introduce one relaxation: if a file is readable by \emph{others} (i.e., it
@@ -1033,7 +1037,7 @@ as described above.
 % requiring no kernel patches or application recompilation.
 %
 \paragraph{Task~2.2 --- Label-creep mitigation and noninterference.}
-We will design and implement two label-creep mitigation techniques, i.e.,
+We will design and implement label-creep mitigation techniques, e.g.,
 treating public data as label $\bot$, and avoiding tainting AI agents when
 tools only operate on the filesystem.
 %
@@ -1120,12 +1124,12 @@ encodes several query invariants directly in the type system:
     required to be an element of that list. 
 
   \item \emph{Numeric range narrowing}:
-    integer columns carry their lower and upper bounds as type-level
-    parameters; when a filter is applied, the type system automatically
-    \emph{narrows} the bound---thus potentially
+    numeric columns carry their lower and upper bounds as type-level
+    parameters; if a query filters that column, the type system automatically
+    \emph{narrows} the bound when possible---thus potentially
     reducing the noise the DSL must add, e.g.,
     \mintinline{haskell}{salary :: IntRange 0 1000} becomes
-    \mintinline{haskell}{salary :: IntTy 501 1000} after
+    \mintinline{haskell}{salary :: IntTy 501 1000} if the query contains the instruction
     \mintinline{haskell}{filter (salary > 500)}.
 
   \item \emph{Column existence}:
