@@ -226,7 +226,7 @@ IFC enforces policies like \emph{noninterference}~\cite{Goguen82}---i.e., secret
 %
 IFC can be provided at two levels of granularity.
 %
-At the \emph{OS level}~\cite{BellLaPadula:73,Efstathopoulos:2005,Zeldovich:2006}, a single label is assigned to each process, offering a coarse-grained but
+At the \emph{OS level}~\cite{BellLaPadula:73,Efstathopoulos:2005,zeldovich:histar}, a single label is assigned to each process, offering a coarse-grained but
 deployment-friendly enforcement model.
 %
 At the \emph{programming language level}, each variable carries its own label, enabling
@@ -346,7 +346,7 @@ semantics as in FIDES~\cite{Costa:FIDES25}, and then explore generalisations
 to a probabilistic setting.}
 %
 A key novelty is using eBPF\footnote{\url{https://ebpf.io}}---a sandboxed virtual machine
-inside the Linux kernel that can hook into a wide range of kernel events---to
+inside the Linux kernel that can hook into kernel events---to
 enforce IFC on unmodified agents, requiring no kernel patches or recompilation.
 %
 Labels are inferred directly from POSIX permission bits, eliminating the need
@@ -356,7 +356,7 @@ We further show that the terminal can be treated as an IFC propagation channel
 between child processes and the orchestrating agent---a treatment absent from
 prior OS-level IFC systems (e.g, \cite{zeldovich:histar,vandebogart:asbestos-tocs,krohn:flume}).
 
-\paragraph{Differential Privacy as a declassification primitive}
+\paragraph{DP as a declassification primitive}
 To our knowledge, this is the first work to envision an agentic AI workflow
 natively integrated with a DP system.
 %
@@ -614,7 +614,7 @@ In Figure~\ref{fig:choice}, the LLM
 classifies an email as \texttt{Urgent}, \texttt{Routine}, or \texttt{Spam},
 and the plan routes each case to its dedicated handler.
 %
-The set of reachable handlers is fully determined by the plan's type---no
+The set of handlers is fully determined by the plan's type---no
 injected value can introduce a handler outside that set.
 
 Finally, Figure~\ref{fig:dual} sketches our proposed \mintinline{haskell}{quarantine}
@@ -853,7 +853,7 @@ We assume the \emph{LLM provider is trusted}: sending data to the model for
 inference does not leak it, and the model itself does not deliberately
 exfiltrate information.
 %
-The threat lies in the effects of the \emph{tool calls} the agent issues.
+The threat lies in the effects of \emph{tool calls} agents issue.
 
 Our goal is to develop a permissive IFC enforcement that is \emph{backwards-compatible}: no changes
 to existing agent code and deployable on standard Linux systems.
@@ -863,7 +863,7 @@ Prior OS-level IFC systems fall short in two ways.
 First, either they enforce only a \emph{static} policy---e.g., SELinux~\cite{loscocco:selinux}
 fixes labels at process creation---or
 they require system modifications---e.g., Flume~\cite{krohn:flume} patches the kernel
-and replaces \texttt{libc}; HiStar~\cite{Zeldovich:2006}; and
+and replaces \texttt{libc}; HiStar~\cite{zeldovich:histar}; and
 Asbestos~\cite{Efstathopoulos:2005} introduce a new OS.
 %
 Second, they treat IFC labels and POSIX filesystem permissions as
@@ -874,7 +874,7 @@ eBPF\footnote{\url{https://ebpf.io}}---originally a small in-kernel virtual mach
 packet inspection---to enforce floating-label IFC for AI agent loops with no kernel
 patches, no new OS, and no recompilation required.
 %
-Labels are inferred directly from existing POSIX permission bits. 
+Labels are inferred from existing POSIX permission bits. 
 %
 
 \paragraph{Taint propagation via eBPF hooks}
@@ -906,7 +906,7 @@ between processes rather than a passive I/O device.
 To our knowledge, no prior OS-level IFC system has modelled the terminal in
 this way. 
 % ; all three treat it as a static external
-% endpoint~\cite{Efstathopoulos:2005,krohn:flume,Zeldovich:2006}---rather than a
+% endpoint~\cite{Efstathopoulos:2005,krohn:flume,zeldovich:histar}---rather than a
 % % label-propagating channel.
 %
 
@@ -999,6 +999,7 @@ When they differ, no single POSIX owner or group can represent the combined
 identity, so we introduce two special principals:
 $\mathsf{manyusers}$, for joins across distinct owners, and
 $\mathsf{manygroups}$, for joins across distinct groups:
+%
 \begin{align*}
   \mathsf{user}_A \sqcup \mathsf{user}_B &= \mathsf{manyusers} \quad (A \neq B), \\
   \mathsf{group}_G \sqcup \mathsf{group}_H &= \mathsf{manygroups} \quad (G \neq H).
@@ -1173,7 +1174,7 @@ expressive power while supporting generic data schemas via the
 sum-of-products representation~\cite{deVries:SOP:WGP14}. 
 
 \paragraph{Task~3.2: LLM agent skills for DP query synthesis}
-We will develop a set of \emph{LLM agent skills} 
+We will develop \emph{LLM agent skills} 
 to enable agents to write DP queries, 
 reason about privacy budget expenditure, and explore
 privacy--accuracy trade-offs. 
